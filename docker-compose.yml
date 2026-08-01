@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    ports:
+      - "5201:8100"
+      - "7201:35729"
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=100
+    tty: true
+    stdin_open: true
