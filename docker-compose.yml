@@ -1,8 +1,9 @@
 services:
-  app:
+  web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/dev/Dockerfile
+    container_name: ionic-plugin-lab-web
     working_dir: /app
     ports:
       - "5201:8100"
@@ -15,3 +16,12 @@ services:
       - CHOKIDAR_INTERVAL=100
     tty: true
     stdin_open: true
+
+  apk:
+    build:
+      context: .
+      dockerfile: docker/apk/Dockerfile
+    container_name: ionic-plugin-lab-apk
+    volumes:
+      - ./app:/app
+    profiles: ["apk"]

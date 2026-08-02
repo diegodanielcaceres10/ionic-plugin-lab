@@ -9,7 +9,7 @@ RUN npm ci
 
 COPY app/ .
 
-COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY docker/dev/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 8100
