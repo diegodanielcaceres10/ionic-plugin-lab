@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -58,6 +59,7 @@ interface StatItem {
 interface PluginItem {
   icon: string;
   label: string;
+  link?: string;
 }
 
 @Component({
@@ -98,7 +100,7 @@ export class HomePage {
   ];
 
   officialPlugins: PluginItem[] = [
-    { icon: 'camera-outline', label: 'Camera' },
+    { icon: 'camera-outline', label: 'Camera', link: 'camera' },
     { icon: 'location-outline', label: 'Geolocation' },
     { icon: 'phone-portrait-outline', label: 'Device' },
     { icon: 'apps-outline', label: 'App' },
@@ -125,7 +127,7 @@ export class HomePage {
     { icon: 'document-attach-outline', label: 'File Picker' },
   ];
 
-  constructor() {
+  constructor(private router: Router) {
     addIcons({
       'menu-outline': menuOutline,
       'flask-outline': flaskOutline,
@@ -162,6 +164,8 @@ export class HomePage {
   }
 
   onPluginTap(plugin: PluginItem): void {
-    console.log('Plugin seleccionado:', plugin.label);
+    if (plugin.link) {
+      this.router.navigateByUrl(plugin.link);
+    }
   }
 }

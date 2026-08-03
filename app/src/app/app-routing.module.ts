@@ -3,11 +3,22 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
   {
-    path: '',
+    path: 'home',
     loadComponent: () =>
       import('./features/home/pages/home.page/home.page').then(
         (m) => m.HomePage,
       ),
+  },
+  {
+    path: 'camera',
+    loadComponent: () =>
+      import('./features/camera/pages/camera.page/camera.page').then(
+        (m) => m.CameraPage,
+      ),
+  },
+  {
+    path: '**',
+    redirectTo: 'home',
   },
 ];
 @NgModule({

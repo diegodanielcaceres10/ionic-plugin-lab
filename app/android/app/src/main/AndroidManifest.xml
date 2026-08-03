@@ -38,4 +38,22 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Camera: required for CameraSource.Camera (opening the camera) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Gallery: required for CameraSource.Photos (chooseFromGallery) -->
+    <!-- Android 13+ (API 33+) uses the new granular media permission -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Android 12 and below (API <= 32) use the classic storage permission -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- Declares the camera as optional hardware: Capacitor's manifest
+         merger sometimes marks it as required by default, which blocks
+         installation on tablets/emulators without a camera -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 </manifest>
