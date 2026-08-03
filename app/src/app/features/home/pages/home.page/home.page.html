@@ -1,0 +1,129 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear">
+        <ion-icon slot="icon-only" name="menu-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Ionic Plugin Lab</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear">
+        <ion-icon slot="icon-only" name="flask-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="home-content" [fullscreen]="true">
+  <section class="welcome-card">
+    <div class="welcome-text">
+      <p class="welcome-greeting">¡Bienvenido!</p>
+      <h1 class="welcome-title">Explora, prueba y aprende</h1>
+      <span class="welcome-divider"></span>
+      <p class="welcome-subtitle">
+        Laboratorio de plugins Capacitor para desarrollar mejores experiencias
+        móviles.
+      </p>
+    </div>
+    <div class="welcome-illustration">
+      <svg
+        viewBox="0 0 200 200"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <rect
+          x="70"
+          y="20"
+          width="70"
+          height="140"
+          rx="14"
+          fill="var(--ion-color-light)"
+          stroke="var(--ion-color-primary)"
+          stroke-width="3"
+        />
+        <rect
+          x="30"
+          y="90"
+          width="40"
+          height="40"
+          rx="6"
+          fill="var(--ion-color-primary-tint)"
+          opacity="0.5"
+          transform="rotate(20 50 110)"
+        />
+        <rect
+          x="140"
+          y="60"
+          width="34"
+          height="34"
+          rx="6"
+          fill="var(--ion-color-primary-tint)"
+          opacity="0.35"
+          transform="rotate(-15 157 77)"
+        />
+      </svg>
+    </div>
+  </section>
+
+  <!-- Estadísticas -->
+  <section class="stats-card">
+    <div class="stat-item" *ngFor="let stat of stats">
+      <ion-icon [name]="stat.icon" [color]="stat.color"></ion-icon>
+      <span class="stat-value">{{ stat.value }}</span>
+      <span class="stat-label">{{ stat.label }}</span>
+    </div>
+  </section>
+
+  <!-- Plugins Oficiales -->
+  <section class="plugins-section">
+    <div class="section-header">
+      <h2>Plugins Oficiales</h2>
+    </div>
+    <div class="plugins-grid">
+      <button
+        class="plugin-card"
+        *ngFor="let plugin of officialPlugins"
+        (click)="onPluginTap(plugin)"
+      >
+        <div class="plugin-icon">
+          <ion-icon [name]="plugin.icon"></ion-icon>
+        </div>
+        <span class="plugin-label">{{ plugin.label }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Plugins Community -->
+  <section class="plugins-section">
+    <div class="section-header">
+      <h2>Plugins Community</h2>
+    </div>
+    <div class="plugins-grid">
+      <button
+        class="plugin-card community"
+        *ngFor="let plugin of communityPlugins"
+        (click)="onPluginTap(plugin)"
+      >
+        <div class="plugin-icon">
+          <ion-icon [name]="plugin.icon"></ion-icon>
+        </div>
+        <span class="plugin-label">{{ plugin.label }}</span>
+      </button>
+    </div>
+  </section>
+</ion-content>
+
+<ion-tab-bar slot="bottom">
+  <ion-tab-button tab="home">
+    <ion-icon name="home-outline"></ion-icon>
+    <ion-label>Inicio</ion-label>
+  </ion-tab-button>
+  <ion-tab-button tab="plugins">
+    <ion-icon name="time-outline"></ion-icon>
+    <ion-label>Recientes</ion-label>
+  </ion-tab-button>
+  <ion-tab-button tab="favorites">
+    <ion-icon name="star-outline"></ion-icon>
+    <ion-label>Favoritos</ion-label>
+  </ion-tab-button>
+</ion-tab-bar>
