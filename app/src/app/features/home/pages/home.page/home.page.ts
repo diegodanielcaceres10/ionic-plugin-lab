@@ -1,18 +1,8 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { CommonModule } from '@angular/common';
-import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonButton,
-  IonIcon,
-  IonContent,
-  IonLabel,
-  IonTabButton,
-  IonTabBar,
-} from '@ionic/angular/standalone';
+import { IonIcon, IonContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   menuOutline,
@@ -65,19 +55,7 @@ interface PluginItem {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonButton,
-    IonIcon,
-    IonContent,
-    IonLabel,
-    IonTabButton,
-    IonTabBar,
-  ],
+  imports: [ShellComponent, CommonModule, IonIcon, IonContent],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
 })

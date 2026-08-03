@@ -1,0 +1,54 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      @if (isBackButton()) {
+        <ion-button fill="clear" (click)="goHome()">
+          <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+        </ion-button>
+      } @else {
+        <ion-button fill="clear">
+          <ion-icon slot="icon-only" name="menu-outline"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+
+    <ion-title>Ionic Plugin Lab</ion-title>
+
+    @if (!isBackButton()) {
+      <ion-buttons slot="end">
+        <ion-button fill="clear">
+          <ion-icon slot="icon-only" name="flask-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ng-content />
+
+<ion-tab-bar slot="bottom">
+  <ion-tab-button
+    tab="home"
+    routerLink="/home"
+    [selected]="activeTab() === 'home'"
+  >
+    <ion-icon name="home-outline"></ion-icon>
+    <ion-label>Home</ion-label>
+  </ion-tab-button>
+  <ion-tab-button
+    tab="plugins"
+    routerLink="/plugins"
+    [selected]="activeTab() === 'recent'"
+  >
+    <ion-icon name="time-outline"></ion-icon>
+    <ion-label>Recent</ion-label>
+  </ion-tab-button>
+  <ion-tab-button
+    tab="favorites"
+    routerLink="/favorites"
+    [selected]="activeTab() === 'favorites'"
+  >
+    <ion-icon name="star-outline"></ion-icon>
+    <ion-label>Favorites</ion-label>
+  </ion-tab-button>
+</ion-tab-bar>

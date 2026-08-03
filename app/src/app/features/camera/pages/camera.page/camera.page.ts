@@ -1,10 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import {
-  IonHeader,
-  IonToolbar,
-  IonButtons,
   IonButton,
   IonIcon,
   IonContent,
@@ -33,22 +29,14 @@ import {
   PhotoInfo,
   BrowserNotSupportedError,
 } from '../../data/camera.service';
+import { ShellComponent } from '../../../../shared/shell/shell.component';
 
 type ViewState = 'idle' | 'loading' | 'captured';
 
 @Component({
   selector: 'app-camera',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    IonHeader,
-    IonToolbar,
-    IonButtons,
-    IonButton,
-    IonIcon,
-    IonContent,
-  ],
+  imports: [ShellComponent, CommonModule, IonButton, IonIcon, IonContent],
   templateUrl: './camera.page.html',
   styleUrls: ['./camera.page.scss'],
 })
