@@ -87,16 +87,16 @@ export class HomePage {
     {
       icon: 'checkmark-circle-outline',
       value: 0,
-      label: 'Probados',
+      label: 'Tested',
       color: 'success',
     },
     {
       icon: 'code-slash-outline',
       value: 0,
-      label: 'Favoritos',
+      label: 'Favorites',
       color: 'tertiary',
     },
-    { icon: 'time-outline', value: 0, label: 'Recientes', color: 'warning' },
+    { icon: 'time-outline', value: 0, label: 'Recent', color: 'warning' },
   ];
 
   officialPlugins: PluginItem[] = [

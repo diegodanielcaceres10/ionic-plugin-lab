@@ -21,7 +21,6 @@ ion-toolbar {
   }
 }
 
-// ---------- Bienvenida ----------
 .welcome-card {
   display: flex;
   align-items: center;
@@ -76,7 +75,6 @@ ion-toolbar {
   }
 }
 
-// ---------- Estadísticas ----------
 .stats-card {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -114,7 +112,6 @@ ion-toolbar {
   }
 }
 
-// ---------- Secciones de plugins ----------
 .plugins-section {
   margin-bottom: 26px;
 

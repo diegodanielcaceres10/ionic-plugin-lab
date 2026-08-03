@@ -10,7 +10,6 @@ ion-toolbar {
   }
 }
 
-// ---------- Encabezado ----------
 .plugin-header {
   display: flex;
   align-items: flex-start;
@@ -51,14 +50,8 @@ ion-toolbar {
       line-height: 1.35;
     }
   }
-
-  .options-btn {
-    flex: 0 0 auto;
-    margin-top: -6px;
-  }
 }
 
-// ---------- Estado vacío ----------
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -108,7 +101,6 @@ ion-toolbar {
   }
 }
 
-// ---------- Foto capturada ----------
 .photo-preview {
   position: relative;
   border-radius: 18px;
@@ -159,7 +151,6 @@ ion-toolbar {
   }
 }
 
-// ---------- Card genérica ----------
 %card {
   background: #fff;
   border-radius: 18px;
@@ -168,7 +159,6 @@ ion-toolbar {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
-// ---------- Información de la foto ----------
 .info-card {
   @extend %card;
 

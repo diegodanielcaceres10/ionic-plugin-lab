@@ -17,9 +17,6 @@
       <h1>Camera</h1>
       <p>Capture photos using the Capacitor Camera plugin.</p>
     </div>
-    <ion-button fill="clear" class="options-btn">
-      <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
-    </ion-button>
   </section>
 
   <section class="empty-state" *ngIf="state() !== 'captured'">
@@ -52,7 +49,7 @@
 
   <ng-container *ngIf="state() === 'captured' && photo() as p">
     <section class="photo-preview">
-      <img [src]="p.webPath" alt="Foto capturada" />
+      <img [src]="p.webPath" alt="Captured photo" />
       <span class="captured-badge">
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         Photo captured

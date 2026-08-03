@@ -88,14 +88,20 @@ const photo = await Camera.getPhoto({
     });
   }
 
+  /** Opens the native camera to capture a new photo. */
   async openCamera(): Promise<void> {
     await this.capture(() => this.cameraService.takePhoto());
   }
 
+  /** Opens the native gallery/photo picker to select an existing photo. */
   async chooseFromGallery(): Promise<void> {
     await this.capture(() => this.cameraService.pickFromGallery());
   }
 
+  /**
+   * Runs a capture action (camera or gallery), updating the view state
+   * and handling each known error case with its corresponding alert.
+   */
   private async capture(action: () => Promise<PhotoInfo>): Promise<void> {
     this.state.set('loading');
     try {
@@ -105,7 +111,7 @@ const photo = await Camera.getPhoto({
     } catch (error) {
       if (error instanceof BrowserNotSupportedError) {
         await this.showBrowserNotSupportedAlert();
-        // Mostramos igual el mock para que se pueda ver el flujo completo de la UI
+        // Still show the mock so the full UI flow can be previewed on browser
         this.photo.set(this.cameraService.getMockPhoto());
         this.state.set('captured');
         return;
@@ -122,40 +128,41 @@ const photo = await Camera.getPhoto({
     }
   }
 
+  /** Copies the code example to the clipboard. */
   async copyCode(): Promise<void> {
     try {
       await navigator.clipboard.writeText(this.codeSnippet);
     } catch {
-      // Si el navegador bloquea el acceso al portapapeles simplemente ignoramos;
-      // no es crítico para el flujo de la demo.
+      // If the browser blocks clipboard access we simply ignore it;
+      // it's not critical to the demo flow.
     }
   }
 
   private async showBrowserNotSupportedAlert(): Promise<void> {
     const alert = await this.alertController.create({
-      header: 'No disponible en el navegador',
+      header: 'Not available in the browser',
       message:
-        'El plugin Camera no puede probarse en el navegador. Instalá la app en un dispositivo móvil para abrir la cámara real.',
-      buttons: ['Entendido'],
+        'The Camera plugin cannot be tested in the browser. Install the app on a mobile device to open the real camera.',
+      buttons: ['Got it'],
     });
     await alert.present();
   }
 
   private async showPermissionDeniedAlert(): Promise<void> {
     const alert = await this.alertController.create({
-      header: 'Permiso denegado',
+      header: 'Permission denied',
       message:
-        'Necesitamos acceso a la cámara y a la galería para poder capturar o elegir una foto. Habilitá el permiso desde los ajustes del dispositivo.',
-      buttons: ['Entendido'],
+        'We need access to the camera and the gallery to capture or pick a photo. Enable the permission from the device settings.',
+      buttons: ['Got it'],
     });
     await alert.present();
   }
 
   private async showGenericErrorAlert(): Promise<void> {
     const alert = await this.alertController.create({
-      header: 'Ocurrió un error',
-      message: 'No pudimos completar la operación. Intentá nuevamente.',
-      buttons: ['Cerrar'],
+      header: 'Something went wrong',
+      message: "We couldn't complete the operation. Please try again.",
+      buttons: ['Close'],
     });
     await alert.present();
   }

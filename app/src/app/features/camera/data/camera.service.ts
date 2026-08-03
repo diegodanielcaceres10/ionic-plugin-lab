@@ -8,7 +8,7 @@ import {
 } from '@capacitor/camera';
 
 export interface PhotoInfo {
-  /** URL utilizable en un <img> (webPath en nativo, o el asset mock en browser) */
+  /** URL usable in an <img> (webPath on native, or the mock asset on browser) */
   webPath: string;
   format: string;
   width?: number;
@@ -19,37 +19,43 @@ export interface PhotoInfo {
 }
 
 /**
- * Se lanza cuando estamos en browser y el consumidor debería
- * mostrar el aviso de "probá esto en un dispositivo móvil".
+ * Thrown when running in the browser and the caller should
+ * show the "try this on a mobile device" notice.
  */
 export class BrowserNotSupportedError extends Error {
   constructor() {
-    super('El plugin Camera no puede probarse en el navegador.');
+    super('The Camera plugin cannot be tested in the browser.');
     this.name = 'BrowserNotSupportedError';
   }
 }
 
 @Injectable({ providedIn: 'root' })
 export class CameraService {
-  /** true si corremos dentro de una app nativa (Android/iOS), false en browser */
+  /**
+   * Returns true when running inside a native app (Android/iOS),
+   * false when running in the browser.
+   */
   isNativePlatform(): boolean {
     return Capacitor.isNativePlatform();
   }
 
   /**
-   * Punto de entrada único. La página no necesita saber si está en
-   * browser o nativo: siempre llama a takePhoto() y maneja el resultado
-   * o el BrowserNotSupportedError.
+   * Single entry point to take a photo. The page doesn't need to know
+   * whether it's running on browser or native: it always calls takePhoto()
+   * and handles either the result or a BrowserNotSupportedError.
    */
   async takePhoto(): Promise<PhotoInfo> {
     if (!this.isNativePlatform()) {
-      // En browser no intentamos abrir nada: directamente devolvemos
-      // el mock y dejamos que la página muestre la alerta.
+      // On browser we don't attempt to open anything: we throw right away
+      // and let the page decide how to show the alert.
       throw new BrowserNotSupportedError();
     }
     return this.takeNativePhoto(CameraSource.Camera);
   }
 
+  /**
+   * Opens the native gallery/photo picker to select an existing image.
+   */
   async pickFromGallery(): Promise<PhotoInfo> {
     if (!this.isNativePlatform()) {
       throw new BrowserNotSupportedError();
@@ -57,7 +63,7 @@ export class CameraService {
     return this.takeNativePhoto(CameraSource.Photos);
   }
 
-  /** Datos fijos de ejemplo para mostrar el flujo completo en browser */
+  /** Fixed sample data used to preview the full flow on browser */
   getMockPhoto(): PhotoInfo {
     return {
       webPath: 'assets/mock/sample-photo.jpg',
@@ -71,9 +77,13 @@ export class CameraService {
   }
 
   // ---------------------------------------------------------------
-  // Nativo
+  // Native
   // ---------------------------------------------------------------
 
+  /**
+   * Requests permissions, opens the native camera/gallery, and reads back
+   * the resulting photo's real dimensions and file size.
+   */
   private async takeNativePhoto(source: CameraSource): Promise<PhotoInfo> {
     await this.ensurePermissions();
 
@@ -84,7 +94,7 @@ export class CameraService {
     });
 
     if (!photo.webPath) {
-      throw new Error('No se pudo obtener la foto capturada.');
+      throw new Error('Could not retrieve the captured photo.');
     }
 
     const [dimensions, fileSizeLabel] = await Promise.all([
@@ -103,7 +113,7 @@ export class CameraService {
     };
   }
 
-  /** Pide permisos de cámara y galería explícitamente antes de abrir */
+  /** Explicitly requests camera and gallery permissions before opening either. */
   private async ensurePermissions(): Promise<void> {
     const status = await Camera.checkPermissions();
 
@@ -128,7 +138,7 @@ export class CameraService {
     }
   }
 
-  /** Lee ancho/alto reales cargando la imagen en un <img> off-DOM */
+  /** Reads the real width/height by loading the image in an off-DOM <img>. */
   private readDimensions(
     src: string,
   ): Promise<{ width: number; height: number } | undefined> {
@@ -141,7 +151,7 @@ export class CameraService {
     });
   }
 
-  /** Lee el peso real del archivo pidiendo el blob por su webPath */
+  /** Reads the real file size by fetching the blob at its webPath. */
   private async readFileSizeLabel(src: string): Promise<string | undefined> {
     try {
       const response = await fetch(src);
