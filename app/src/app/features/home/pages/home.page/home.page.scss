@@ -81,8 +81,9 @@ ion-toolbar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: var(--card-radius);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
   padding: 18px 8px;
   margin-bottom: 28px;
 
@@ -92,13 +93,17 @@ ion-toolbar {
     align-items: center;
     gap: 6px;
 
+    &:not(:first-child) {
+      border-left: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
     ion-icon {
       font-size: 1.5rem;
     }
 
     .stat-value {
       font-size: 1.15rem;
-      font-weight: 700;
+      font-weight: 900;
       color: var(--ion-color-dark, #1a1a2e);
     }
 
@@ -129,7 +134,7 @@ ion-toolbar {
 
   .plugins-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
   }
 
@@ -137,9 +142,10 @@ ion-toolbar {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: 8px;
     padding: 14px 6px;
+    width: 100%;
+    min-width: 0;
     background: #fff;
     border: none;
     border-radius: 14px;
@@ -174,6 +180,10 @@ ion-toolbar {
       text-align: center;
       color: var(--ion-color-dark, #1a1a2e);
       line-height: 1.2;
+      width: 100%;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
   }
 }
