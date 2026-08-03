@@ -1,8 +1,15 @@
-import { Component, computed, inject, input } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, inject, input, computed } from '@angular/core';
+import { Location } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
-type AppTabsTypes = 'home' | 'camera' | 'recent' | 'favorites';
+type AppTabsTypes =
+  | 'home'
+  | 'recent'
+  | 'favorites'
+  | 'settings'
+  | 'camera'
+  | 'geolocation';
 
 @Component({
   selector: 'app-shell',
@@ -12,13 +19,13 @@ type AppTabsTypes = 'home' | 'camera' | 'recent' | 'favorites';
   styleUrls: ['./shell.component.scss'],
 })
 export class ShellComponent {
-  private router = inject(Router);
+  private location = inject(Location);
 
-  readonly activeTab = input<AppTabsTypes>('home');
+  readonly activePage = input<AppTabsTypes>('home');
 
-  readonly isBackButton = computed(() => this.activeTab() !== 'home');
+  readonly isShowMenuButton = computed(() => this.activePage() === 'home');
 
-  goHome() {
-    this.router.navigateByUrl('/home');
+  goBack() {
+    this.location.back();
   }
 }

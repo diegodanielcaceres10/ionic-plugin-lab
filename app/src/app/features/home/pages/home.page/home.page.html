@@ -1,96 +1,94 @@
 <app-shell activePage="home">
-  <ion-content class="home-content">
-    <section class="welcome-card">
-      <div class="welcome-text">
-        <p class="welcome-greeting">Welcome!</p>
-        <h1 class="welcome-title">Explore, test, and learn</h1>
-        <span class="welcome-divider"></span>
-        <p class="welcome-subtitle">
-          A Capacitor plugin lab to help you build better mobile experiences.
-        </p>
-      </div>
-      <div class="welcome-illustration">
-        <svg
-          viewBox="0 0 200 200"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <rect
-            x="70"
-            y="20"
-            width="70"
-            height="140"
-            rx="14"
-            fill="var(--ion-color-light)"
-            stroke="var(--ion-color-primary)"
-            stroke-width="3"
-          />
-          <rect
-            x="30"
-            y="90"
-            width="40"
-            height="40"
-            rx="6"
-            fill="var(--ion-color-primary-tint)"
-            opacity="0.5"
-            transform="rotate(20 50 110)"
-          />
-          <rect
-            x="140"
-            y="60"
-            width="34"
-            height="34"
-            rx="6"
-            fill="var(--ion-color-primary-tint)"
-            opacity="0.35"
-            transform="rotate(-15 157 77)"
-          />
-        </svg>
-      </div>
-    </section>
+  <section class="welcome">
+    <div class="welcome__text">
+      <p class="welcome__greeting">Welcome!</p>
+      <h1 class="welcome__title">Explore, test, and learn</h1>
+      <span class="welcome__divider"></span>
+      <p class="welcome__subtitle">
+        A Capacitor plugin lab to help you build better mobile experiences.
+      </p>
+    </div>
+    <div class="welcome__illustration">
+      <svg
+        viewBox="0 0 200 200"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <rect
+          x="70"
+          y="20"
+          width="70"
+          height="140"
+          rx="14"
+          fill="var(--ion-color-light)"
+          stroke="var(--ion-color-primary)"
+          stroke-width="3"
+        />
+        <rect
+          x="30"
+          y="90"
+          width="40"
+          height="40"
+          rx="6"
+          fill="var(--ion-color-primary-tint)"
+          opacity="0.5"
+          transform="rotate(20 50 110)"
+        />
+        <rect
+          x="140"
+          y="60"
+          width="34"
+          height="34"
+          rx="6"
+          fill="var(--ion-color-primary-tint)"
+          opacity="0.35"
+          transform="rotate(-15 157 77)"
+        />
+      </svg>
+    </div>
+  </section>
 
-    <section class="stats-card">
-      <div class="stat-item" *ngFor="let stat of stats">
-        <ion-icon [name]="stat.icon" [color]="stat.color"></ion-icon>
-        <span class="stat-value">{{ stat.value }}</span>
-        <span class="stat-label">{{ stat.label }}</span>
-      </div>
-    </section>
+  <section class="stats">
+    <div class="stat__item" *ngFor="let stat of stats">
+      <ion-icon [name]="stat.icon" [color]="stat.color"></ion-icon>
+      <span class="stat__value">{{ stat.value }}</span>
+      <span class="stat__label">{{ stat.label }}</span>
+    </div>
+  </section>
 
-    <section class="plugins-section">
-      <div class="section-header">
-        <h2>Official Plugins</h2>
-      </div>
-      <div class="plugins-grid">
-        <button
-          class="plugin-card"
-          *ngFor="let plugin of officialPlugins"
-          (click)="onPluginTap(plugin)"
-        >
-          <div class="plugin-icon">
-            <ion-icon [name]="plugin.icon"></ion-icon>
-          </div>
-          <span class="plugin-label">{{ plugin.label }}</span>
-        </button>
-      </div>
-    </section>
+  <section class="plugins">
+    <div class="plugins__header">
+      <h2>Official Plugins</h2>
+    </div>
+    <div class="plugins__grid">
+      <button
+        class="plugins__card"
+        *ngFor="let plugin of officialPlugins"
+        (click)="onPluginTap(plugin)"
+      >
+        <div class="plugins__icon">
+          <ion-icon [name]="plugin.icon"></ion-icon>
+        </div>
+        <span class="plugins__label">{{ plugin.label }}</span>
+      </button>
+    </div>
+  </section>
 
-    <section class="plugins-section">
-      <div class="section-header">
-        <h2>Plugins Community</h2>
-      </div>
-      <div class="plugins-grid">
-        <button
-          class="plugin-card community"
-          *ngFor="let plugin of communityPlugins"
-          (click)="onPluginTap(plugin)"
-        >
-          <div class="plugin-icon">
-            <ion-icon [name]="plugin.icon"></ion-icon>
-          </div>
-          <span class="plugin-label">{{ plugin.label }}</span>
-        </button>
-      </div>
-    </section>
-  </ion-content>
+  <section class="plugins">
+    <div class="plugins__header">
+      <h2>Plugins Community</h2>
+    </div>
+    <div class="plugins__grid">
+      <button
+        class="plugins__card"
+        *ngFor="let plugin of communityPlugins"
+        (click)="onPluginTap(plugin)"
+      >
+        <div class="plugins__icon plugins__icon-community">
+          <ion-icon [name]="plugin.icon"></ion-icon>
+        </div>
+        <span class="plugins__label">{{ plugin.label }}</span>
+      </button>
+    </div>
+  </section>
 </app-shell>

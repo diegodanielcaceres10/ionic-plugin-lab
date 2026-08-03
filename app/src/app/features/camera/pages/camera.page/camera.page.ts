@@ -1,9 +1,11 @@
 import { Component, signal } from '@angular/core';
+import { ShellComponent } from '../../../../shared/shell/shell.component';
+import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { CommonModule } from '@angular/common';
 import {
+  IonSpinner,
   IonButton,
   IonIcon,
-  IonContent,
   AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -29,29 +31,26 @@ import {
   PhotoInfo,
   BrowserNotSupportedError,
 } from '../../data/camera.service';
-import { ShellComponent } from '../../../../shared/shell/shell.component';
 
 type ViewState = 'idle' | 'loading' | 'captured';
 
 @Component({
   selector: 'app-camera',
   standalone: true,
-  imports: [ShellComponent, CommonModule, IonButton, IonIcon, IonContent],
+  imports: [
+    ShellComponent,
+    CommonModule,
+    HeaderComponent,
+    IonSpinner,
+    IonButton,
+    IonIcon,
+  ],
   templateUrl: './camera.page.html',
   styleUrls: ['./camera.page.scss'],
 })
 export class CameraPage {
   state = signal<ViewState>('idle');
   photo = signal<PhotoInfo | null>(null);
-
-  codeSnippet = `import { Camera, CameraResultType, CameraSource }
-from '@capacitor/camera';
-
-const photo = await Camera.getPhoto({
-  quality: 90,
-  resultType: CameraResultType.Uri,
-  source: CameraSource.Camera
-});`;
 
   constructor(
     private cameraService: CameraService,
@@ -113,16 +112,6 @@ const photo = await Camera.getPhoto({
 
       await this.showGenericErrorAlert();
       this.state.set(this.photo() ? 'captured' : 'idle');
-    }
-  }
-
-  /** Copies the code example to the clipboard. */
-  async copyCode(): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(this.codeSnippet);
-    } catch {
-      // If the browser blocks clipboard access we simply ignore it;
-      // it's not critical to the demo flow.
     }
   }
 

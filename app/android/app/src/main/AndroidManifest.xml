@@ -50,10 +50,24 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
+    <!-- Geolocation: coarse permission, required as a baseline and as the
+         fallback Android grants if the user denies fine location -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Geolocation: fine permission, required for enableHighAccuracy /
+         GPS-level precision in getCurrentPosition and watchPosition -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <!-- Declares the camera as optional hardware: Capacitor's manifest
          merger sometimes marks it as required by default, which blocks
          installation on tablets/emulators without a camera -->
     <uses-feature
         android:name="android.hardware.camera"
+        android:required="false" />
+
+    <!-- Declares GPS as optional hardware: same manifest-merger issue as
+         the camera — without this, install can be blocked on devices/
+         emulators that lack a GPS radio (e.g. Wi-Fi-only tablets) -->
+    <uses-feature
+        android:name="android.hardware.location.gps"
         android:required="false" />
 </manifest>

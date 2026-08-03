@@ -1,3 +1,11 @@
 :host {
   display: contents;
 }
+
+.shell-content {
+  --background: #f5f6fb;
+
+  &::part(scroll) {
+    padding: 12px 16px 32px;
+  }
+}

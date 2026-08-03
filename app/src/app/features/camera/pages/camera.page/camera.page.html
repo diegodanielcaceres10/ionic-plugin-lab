@@ -1,126 +1,111 @@
 <app-shell activePage="camera">
-  <ion-content class="camera-content">
-    <section class="plugin-header">
-      <div class="plugin-avatar">
-        <ion-icon name="camera-outline"></ion-icon>
-      </div>
-      <div class="plugin-info">
-        <h1>Camera</h1>
-        <p>Capture photos using the Capacitor Camera plugin.</p>
-      </div>
-    </section>
+  <app-ui-header
+    title="Camera"
+    subtitle="Capture photos using the Capacitor Camera plugin."
+  />
 
-    <section class="empty-state" *ngIf="state() !== 'captured'">
-      <div class="empty-icon">
+  <section class="card">
+    @if (state() === 'loading') {
+    <div class="card__spinner">
+      <ion-spinner name="circular" color="primary"></ion-spinner>
+    </div>
+    } @else if (state() === 'captured') {
+    <div class="card__photo">
+      <img *ngIf="photo()" [src]="photo()!.webPath" alt="Captured photo" />
+      <span>
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        Photo captured
+      </span>
+    </div>
+    } @else {
+    <div class="card__empty">
+      <div class="card__icon">
         <ion-icon name="camera-outline"></ion-icon>
       </div>
       <h2>No photo captured yet</h2>
       <p>Tap the button below to open the camera and capture a photo.</p>
-      <ion-button
-        expand="block"
-        shape="round"
-        class="primary-cta"
-        [disabled]="state() === 'loading'"
-        (click)="openCamera()"
+    </div>
+    }
+  </section>
+
+  <section class="buttons">
+    <ion-button
+      expand="block"
+      shape="round"
+      [disabled]="state() === 'loading'"
+      (click)="openCamera()"
+    >
+      <ion-icon slot="start" name="camera-outline"></ion-icon>
+      {{ state() === 'captured' ? 'Take Another Photo' : 'Open Camera' }}
+    </ion-button>
+    <ion-button
+      expand="block"
+      shape="round"
+      fill="outline"
+      [disabled]="state() === 'loading'"
+      (click)="chooseFromGallery()"
+    >
+      <ion-icon slot="start" name="image-outline"></ion-icon>
+      Choose from Gallery
+    </ion-button>
+  </section>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Photo Information</h3>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="image-outline"></ion-icon>
+        <span>Format</span>
+      </div>
+      <span class="info__value">{{ photo()?.format ?? '—' }}</span>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <span>Width</span>
+      </div>
+      <span class="info__value"
+        >{{ photo()?.width ? (photo()!.width + ' px') : '—' }}</span
       >
-        <ion-icon slot="start" name="camera-outline"></ion-icon>
-        {{ state() === 'loading' ? 'Opening camera...' : 'Open Camera' }}
-      </ion-button>
-      <ion-button
-        expand="block"
-        shape="round"
-        class="primary-cta"
-        fill="outline"
-        (click)="chooseFromGallery()"
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="swap-vertical-outline"></ion-icon>
+        <span>Height</span>
+      </div>
+      <span class="info__value"
+        >{{ photo()?.height ? (photo()!.height + ' px') : '—' }}</span
       >
-        <ion-icon slot="start" name="image-outline"></ion-icon>
-        Choose from Gallery
-      </ion-button>
-    </section>
+    </div>
 
-    <ng-container *ngIf="state() === 'captured' && photo() as p">
-      <section class="photo-preview">
-        <img [src]="p.webPath" alt="Captured photo" />
-        <span class="captured-badge">
-          <ion-icon name="checkmark-circle-outline"></ion-icon>
-          Photo captured
-        </span>
-      </section>
-
-      <div class="action-buttons">
-        <ion-button expand="block" shape="round" (click)="openCamera()">
-          <ion-icon slot="start" name="camera-outline"></ion-icon>
-          Take Another Photo
-        </ion-button>
-        <ion-button
-          expand="block"
-          shape="round"
-          fill="outline"
-          (click)="chooseFromGallery()"
-        >
-          <ion-icon slot="start" name="image-outline"></ion-icon>
-          Choose from Gallery
-        </ion-button>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="document-outline"></ion-icon>
+        <span>File Size</span>
       </div>
-    </ng-container>
+      <span class="info__value">{{ photo()?.fileSizeLabel ?? '—' }}</span>
+    </div>
 
-    <section class="info-card">
-      <div class="info-header">
-        <ion-icon name="information-circle-outline"></ion-icon>
-        <h3>Photo Information</h3>
+    <div class="info__row" *ngIf="state() === 'captured'">
+      <div class="info__label">
+        <ion-icon name="folder-outline"></ion-icon>
+        <span>File Path</span>
       </div>
+      <span class="info__value truncate">{{ photo()?.filePath ?? '—' }}</span>
+    </div>
 
-      <div class="info-row">
-        <div class="info-label">
-          <ion-icon name="image-outline"></ion-icon>
-          <span>Format</span>
-        </div>
-        <span class="info-value">{{ photo()?.format ?? '—' }}</span>
+    <div class="info__row" *ngIf="state() === 'captured'">
+      <div class="info__label">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Saved</span>
       </div>
-
-      <div class="info-row">
-        <div class="info-label">
-          <ion-icon name="swap-horizontal-outline"></ion-icon>
-          <span>Width</span>
-        </div>
-        <span class="info-value"
-          >{{ photo()?.width ? (photo()!.width + ' px') : '—' }}</span
-        >
-      </div>
-
-      <div class="info-row">
-        <div class="info-label">
-          <ion-icon name="swap-vertical-outline"></ion-icon>
-          <span>Height</span>
-        </div>
-        <span class="info-value"
-          >{{ photo()?.height ? (photo()!.height + ' px') : '—' }}</span
-        >
-      </div>
-
-      <div class="info-row">
-        <div class="info-label">
-          <ion-icon name="document-outline"></ion-icon>
-          <span>File Size</span>
-        </div>
-        <span class="info-value">{{ photo()?.fileSizeLabel ?? '—' }}</span>
-      </div>
-
-      <div class="info-row" *ngIf="state() === 'captured'">
-        <div class="info-label">
-          <ion-icon name="folder-outline"></ion-icon>
-          <span>File Path</span>
-        </div>
-        <span class="info-value truncate">{{ photo()?.filePath ?? '—' }}</span>
-      </div>
-
-      <div class="info-row" *ngIf="state() === 'captured'">
-        <div class="info-label">
-          <ion-icon name="time-outline"></ion-icon>
-          <span>Saved</span>
-        </div>
-        <span class="info-value">{{ photo()?.savedLabel ?? '—' }}</span>
-      </div>
-    </section>
-  </ion-content>
+      <span class="info__value">{{ photo()?.savedLabel ?? '—' }}</span>
+    </div>
+  </section>
 </app-shell>

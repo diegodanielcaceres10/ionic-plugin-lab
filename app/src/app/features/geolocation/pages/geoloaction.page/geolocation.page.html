@@ -1,0 +1,146 @@
+<app-shell activePage="geolocation">
+  <app-ui-header
+    title="Geolocation"
+    subtitle="Get the current location of the device."
+  />
+
+  <section class="card">
+    @if (state() === 'loading') {
+    <div class="card__spinner">
+      <ion-spinner name="circular" color="primary"></ion-spinner>
+    </div>
+    } @else if (state() === 'obtained') {
+    <div class="card__map">
+      <div #mapEl class="card__container"></div>
+      <span class="card__badge card__badge-success">
+        <ion-icon name="checkmark-circle"></ion-icon>
+        Location obtained
+      </span>
+
+      <ion-button
+        class="card__recenter"
+        fill="clear"
+        (click)="getCurrentLocation()"
+      >
+        <ion-icon slot="icon-only" name="locate-outline"></ion-icon>
+      </ion-button>
+    </div>
+    } @else if (position(); as p) {
+    <div class="card__position">
+      <div class="card__button">
+        <ion-icon name="location"></ion-icon>
+      </div>
+      <div class="card__text">
+        <span class="card__title">Current Position</span>
+        <span class="card__address">
+          {{ address() ?? 'Address unavailable' }}
+        </span>
+        <span class="card__accuracy">
+          Accuracy: {{ p.accuracy | number:'1.1-1' }} m
+        </span>
+      </div>
+    </div>
+    } @else if (state() === 'error') {
+    <div class="card__error">
+      <div class="card__icon">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+      </div>
+      <h2>{{ errorMessage() }}</h2>
+    </div>
+    } @else {
+    <div class="card__empty">
+      <div class="card__icon">
+        <ion-icon name="navigate-outline"></ion-icon>
+      </div>
+      <h2>No location obtained yet</h2>
+      <p>Tap the button below to get your current location.</p>
+    </div>
+    }
+  </section>
+
+  <section class="buttons">
+    <ion-button
+      expand="block"
+      shape="round"
+      class="primary-cta"
+      [disabled]="state() === 'loading'"
+      (click)="getCurrentLocation()"
+    >
+      <ion-icon slot="start" name="locate-outline"></ion-icon>
+      {{ state() === 'loading' ? 'Locating...' : 'Get Current Location' }}
+    </ion-button>
+    <ion-button
+      expand="block"
+      shape="round"
+      fill="outline"
+      [class.active]="watching()"
+      (click)="toggleWatch()"
+    >
+      <ion-icon slot="start" name="time-outline"></ion-icon>
+      {{ watching() ? 'Stop Watching' : 'Watch Position' }}
+    </ion-button>
+  </section>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Location Information</h3>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="locate-outline"></ion-icon><span>Latitude</span>
+      </div>
+      <span class="info__value">{{ position()?.latitude ?? '—' }}</span>
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="locate-outline"></ion-icon><span>Longitude</span>
+      </div>
+      <span class="info__value">{{ position()?.longitude ?? '—' }}</span>
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="locate-outline"></ion-icon><span>Accuracy</span>
+      </div>
+      <span class="info__value"
+        >{{ position()?.accuracy ? (position()!.accuracy + ' m') : '—' }}</span
+      >
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="triangle-outline"></ion-icon><span>Altitude</span>
+      </div>
+      <span class="info__value"
+        >{{ position()?.altitude ? (position()!.altitude + ' m') : '—' }}</span
+      >
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="speedometer-outline"></ion-icon><span>Speed</span>
+      </div>
+      <span class="info__value"
+        >{{ position()?.speed ?? '—' }}{{ position()?.speed ? ' m/s' : ''
+        }}</span
+      >
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="navigate-outline"></ion-icon><span>Heading</span>
+      </div>
+      <span class="info__value">{{ position()?.heading ?? '—' }}</span>
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="time-outline"></ion-icon><span>Timestamp</span>
+      </div>
+      <span class="info__value">{{ timestampLabel() }}</span>
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="wifi-outline"></ion-icon><span>Provider</span>
+      </div>
+      <span class="info__value">GPS</span>
+    </div>
+  </section>
+</app-shell>

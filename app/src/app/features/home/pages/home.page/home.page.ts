@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { CommonModule } from '@angular/common';
-import { IonIcon, IonContent } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   menuOutline,
@@ -55,7 +55,7 @@ interface PluginItem {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [ShellComponent, CommonModule, IonIcon, IonContent],
+  imports: [ShellComponent, CommonModule, IonIcon],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
 })
@@ -79,7 +79,7 @@ export class HomePage {
 
   officialPlugins: PluginItem[] = [
     { icon: 'camera-outline', label: 'Camera', link: 'camera' },
-    { icon: 'location-outline', label: 'Geolocation' },
+    { icon: 'location-outline', label: 'Geolocation', link: 'geolocation' },
     { icon: 'phone-portrait-outline', label: 'Device' },
     { icon: 'apps-outline', label: 'App' },
     { icon: 'globe-outline', label: 'Browser' },

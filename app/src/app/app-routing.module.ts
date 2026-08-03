@@ -17,6 +17,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'geolocation',
+    loadComponent: () =>
+      import('./features/geolocation/pages/geoloaction.page/geolocation.page').then(
+        (m) => m.GeolocationPage,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },
