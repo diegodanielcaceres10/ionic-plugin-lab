@@ -1,11 +1,11 @@
-import { Injectable } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
+import { inject, Injectable } from '@angular/core';
 import {
   Camera,
   CameraResultType,
   CameraSource,
   Photo,
 } from '@capacitor/camera';
+import { PlatformService } from '../../../core/platform/platform.service';
 
 export interface PhotoInfo {
   /** URL usable in an <img> (webPath on native, or the mock asset on browser) */
@@ -31,13 +31,7 @@ export class BrowserNotSupportedError extends Error {
 
 @Injectable({ providedIn: 'root' })
 export class CameraService {
-  /**
-   * Returns true when running inside a native app (Android/iOS),
-   * false when running in the browser.
-   */
-  isNativePlatform(): boolean {
-    return Capacitor.isNativePlatform();
-  }
+  private platformService = inject(PlatformService);
 
   /**
    * Single entry point to take a photo. The page doesn't need to know
@@ -45,7 +39,7 @@ export class CameraService {
    * and handles either the result or a BrowserNotSupportedError.
    */
   async takePhoto(): Promise<PhotoInfo> {
-    if (!this.isNativePlatform()) {
+    if (!this.platformService.isNativePlatform()) {
       // On browser we don't attempt to open anything: we throw right away
       // and let the page decide how to show the alert.
       throw new BrowserNotSupportedError();
@@ -57,7 +51,7 @@ export class CameraService {
    * Opens the native gallery/photo picker to select an existing image.
    */
   async pickFromGallery(): Promise<PhotoInfo> {
-    if (!this.isNativePlatform()) {
+    if (!this.platformService.isNativePlatform()) {
       throw new BrowserNotSupportedError();
     }
     return this.takeNativePhoto(CameraSource.Photos);

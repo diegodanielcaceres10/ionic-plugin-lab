@@ -1,0 +1,89 @@
+<app-shell activePage="filesystem">
+  <app-ui-header
+    title="Filesystem"
+    subtitle="Interact with the device file system. Create, read, update and manage files and directories."
+  />
+
+  <section class="directory-card">
+    <div class="directory-card__header">
+      <div class="directory-card__icon">
+        <ion-icon name="folder-outline"></ion-icon>
+      </div>
+      <div class="directory-card__text">
+        <span class="directory-card__title">Directory</span>
+        <span class="directory-card__subtitle"
+          >Select a directory to work with</span
+        >
+      </div>
+    </div>
+
+    <button class="directory-select" (click)="openDirectoryPicker()">
+      <ion-icon name="folder-outline"></ion-icon>
+      <div class="directory-select__text">
+        <span class="directory-select__label"
+          >{{ selectedDirectory().label }}</span
+        >
+        <span class="directory-select__path"
+          >{{ selectedDirectory().path }}</span
+        >
+      </div>
+      <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </section>
+
+  <h3 class="section-title">Filesystem Operations</h3>
+
+  <div class="operations-grid">
+    @for (op of operations; track op.id) {
+    <button class="op-card" (click)="op.action()">
+      <div class="op-card__icon">
+        <ion-icon [name]="op.icon"></ion-icon>
+      </div>
+      <span class="op-card__title">{{ op.title }}</span>
+      <span class="op-card__method">{{ op.method }}</span>
+      <span class="op-card__description">{{ op.description }}</span>
+    </button>
+    }
+  </div>
+
+  <section class="activity">
+    <div class="activity__header">
+      <ion-icon name="time-outline"></ion-icon>
+      <div class="activity__text">
+        <h3>Activity Log</h3>
+        <p>See the result of your operations</p>
+      </div>
+    </div>
+
+    @if (logs().length === 0) {
+    <div class="activity__empty">
+      <ion-icon name="code-slash-outline"></ion-icon>
+      <div>
+        <strong>No operations performed yet.</strong>
+        <p>Use the actions above to start interacting with the file system.</p>
+      </div>
+    </div>
+    } @else {
+    <div class="activity__list">
+      @for (log of logs(); track log.timestamp) {
+      <div class="log-item log-item--{{ log.status }}">
+        <ion-icon
+          [name]="log.status === 'success' ? 'checkmark-circle' : 'alert-circle'"
+        ></ion-icon>
+        <div class="log-item__body">
+          <div class="log-item__row">
+            <span class="log-item__title">{{ log.title }}</span>
+            <span class="log-item__time">{{ timeLabel(log.timestamp) }}</span>
+          </div>
+          <p class="log-item__message">{{ log.message }}</p>
+        </div>
+      </div>
+      }
+    </div>
+    <ion-button fill="clear" size="small" (click)="clearLog()">
+      <ion-icon slot="start" name="trash-outline"></ion-icon>
+      Clear log
+    </ion-button>
+    }
+  </section>
+</app-shell>

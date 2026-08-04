@@ -38,6 +38,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'filesystem',
+    loadComponent: () =>
+      import('./features/filesystem/pages/filesystem.page/filesystem.page').then(
+        (m) => m.FilesystemPage,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },

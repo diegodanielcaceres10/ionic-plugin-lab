@@ -82,7 +82,7 @@ export class HomePage {
     { icon: 'location-outline', label: 'Geolocation', link: 'geolocation' },
     { icon: 'phone-portrait-outline', label: 'Device', link: 'device' },
     { icon: 'globe-outline', label: 'Browser', link: 'browser' },
-    { icon: 'folder-outline', label: 'Filesystem' },
+    { icon: 'folder-outline', label: 'Filesystem', link: 'filesystem' },
     { icon: 'phone-portrait-outline', label: 'Haptics' },
     { icon: 'clipboard-outline', label: 'Clipboard' },
     { icon: 'notifications-outline', label: 'Local Notifications' },

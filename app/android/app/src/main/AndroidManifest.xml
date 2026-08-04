@@ -70,4 +70,16 @@
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />
+
+    <!-- Filesystem: required to read/write files outside the app's private
+         sandbox (e.g. Directory.Documents, Directory.ExternalStorage) -->
+    <!-- Android 13+ (API 33+) scopes external storage per media type; a
+         generic Filesystem write to Documents/ExternalStorage still needs
+         the classic permission below on API <= 32 -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 </manifest>
