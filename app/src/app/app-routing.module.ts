@@ -31,6 +31,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'browser',
+    loadComponent: () =>
+      import('./features/browser/pages/browser.page/browser.page').then(
+        (m) => m.BrowserPage,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },

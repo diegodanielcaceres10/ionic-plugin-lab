@@ -10,7 +10,8 @@ type AppTabsTypes =
   | 'settings'
   | 'camera'
   | 'geolocation'
-  | 'device';
+  | 'device'
+  | 'browser';
 
 @Component({
   selector: 'app-shell',

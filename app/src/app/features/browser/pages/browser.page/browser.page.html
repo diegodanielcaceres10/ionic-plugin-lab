@@ -1,0 +1,58 @@
+<app-shell activePage="browser">
+  <app-ui-header
+    title="Browser"
+    subtitle="Open websites using the Capacitor Browser plugin."
+  />
+
+  <section class="url-card">
+    <div class="url-card__label">
+      <ion-icon name="link-outline"></ion-icon>
+      <span>URL</span>
+    </div>
+
+    <div class="url-card__input">
+      <ion-icon name="globe-outline"></ion-icon>
+      <ion-input
+        [(ngModel)]="url"
+        type="url"
+        placeholder="https://example.com"
+        inputmode="url"
+      ></ion-input>
+      @if (url()) {
+      <button class="url-card__clear" (click)="clearUrl()">
+        <ion-icon name="close-circle"></ion-icon>
+      </button>
+      }
+    </div>
+
+    <p class="url-card__hint">
+      Enter any URL and open it in the native browser.
+    </p>
+
+    <div class="quick-links">
+      <span class="quick-links__title">Quick Links</span>
+      <div class="quick-links__row">
+        @for (link of quickLinks; track link.label) {
+        <button class="quick-link" (click)="openQuickLink(link)">
+          <ion-icon [name]="link.icon"></ion-icon>
+          <span>{{ link.label }}</span>
+        </button>
+        }
+      </div>
+    </div>
+
+    <ion-button
+      expand="block"
+      shape="round"
+      class="primary-cta"
+      (click)="openCurrentUrl()"
+    >
+      <ion-icon slot="start" name="open-outline"></ion-icon>
+      Open Browser
+    </ion-button>
+    <p class="url-card__secure">
+      <ion-icon name="lock-closed-outline"></ion-icon>
+      Opens in a secure in-app browser
+    </p>
+  </section>
+</app-shell>
