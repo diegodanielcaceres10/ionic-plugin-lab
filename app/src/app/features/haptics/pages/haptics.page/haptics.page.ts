@@ -5,6 +5,7 @@ import { ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { IonIcon } from '@ionic/angular/standalone';
 import { HapticsService } from '../../data/haptics.service';
 
@@ -23,7 +24,13 @@ interface FeedbackCard {
 @Component({
   selector: 'app-haptics',
   standalone: true,
-  imports: [ShellComponent, HeaderComponent, BannerComponent, IonIcon],
+  imports: [
+    ShellComponent,
+    HeaderComponent,
+    BannerComponent,
+    ButtonComponent,
+    IonIcon,
+  ],
   templateUrl: './haptics.page.html',
   styleUrls: ['./haptics.page.scss'],
 })

@@ -2,7 +2,8 @@ import { Component, OnDestroy, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
-import { IonInput, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { IonInput, IonIcon } from '@ionic/angular/standalone';
 import { BrowserService } from '../../data/browser.service';
 
 interface QuickLink {
@@ -23,8 +24,8 @@ interface QuickLink {
     FormsModule,
     ShellComponent,
     HeaderComponent,
+    ButtonComponent,
     IonInput,
-    IonButton,
     IonIcon,
   ],
   templateUrl: './browser.page.html',

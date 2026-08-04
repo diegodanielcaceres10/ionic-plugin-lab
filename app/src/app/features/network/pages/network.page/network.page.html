@@ -13,15 +13,11 @@
     [variant]="isConnected() ? 'success' : 'danger'"
   />
 
-  <ion-button
-    expand="block"
-    shape="round"
-    class="primary-cta"
-    (click)="refreshStatus()"
-  >
-    <ion-icon slot="start" name="refresh-outline"></ion-icon>
-    Refresh Status
-  </ion-button>
+  <app-ui-button
+    text="Refresh Status"
+    icon="refresh-outline"
+    (buttonClick)="refreshStatus()"
+  />
 
   <section class="info">
     <div class="info__header">

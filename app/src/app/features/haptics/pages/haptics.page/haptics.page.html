@@ -19,10 +19,14 @@
         <ion-icon [name]="card.icon"></ion-icon>
       </div>
       <span class="feedback-card__title">{{ card.title }}</span>
-      <button class="feedback-card__test" (click)="trigger(card)">
-        <ion-icon name="pulse-outline"></ion-icon>
-        TEST
-      </button>
+
+      <app-ui-button
+        text="TEST"
+        icon="pulse-outline"
+        size="small"
+        [disabled]="!hapticsSupported()"
+        (buttonClick)="trigger(card)"
+      />
     </div>
     }
   </div>
@@ -35,10 +39,14 @@
         <ion-icon [name]="card.icon"></ion-icon>
       </div>
       <span class="feedback-card__title">{{ card.title }}</span>
-      <button class="feedback-card__test" (click)="trigger(card)">
-        <ion-icon name="pulse-outline"></ion-icon>
-        TEST
-      </button>
+
+      <app-ui-button
+        text="TEST"
+        icon="pulse-outline"
+        size="small"
+        [disabled]="!hapticsSupported()"
+        (buttonClick)="trigger(card)"
+      />
     </div>
     }
   </div>
@@ -51,10 +59,14 @@
         <ion-icon [name]="card.icon"></ion-icon>
       </div>
       <span class="selection-item__title">{{ card.title }}</span>
-      <button class="feedback-card__test" (click)="trigger(card)">
-        <ion-icon name="pulse-outline"></ion-icon>
-        TEST
-      </button>
+
+      <app-ui-button
+        text="TEST"
+        icon="pulse-outline"
+        size="small"
+        [disabled]="!hapticsSupported()"
+        (buttonClick)="trigger(card)"
+      />
     </div>
     }
   </div>

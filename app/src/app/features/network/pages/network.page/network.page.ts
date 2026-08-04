@@ -13,7 +13,8 @@ import { ConnectionStatus } from '@capacitor/network';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { IonIcon } from '@ionic/angular/standalone';
 import { NetworkService } from '../../data/network.service';
 
 interface NetworkEvent {
@@ -34,7 +35,7 @@ interface NetworkEvent {
     ShellComponent,
     HeaderComponent,
     BannerComponent,
-    IonButton,
+    ButtonComponent,
     IonIcon,
   ],
   templateUrl: './network.page.html',

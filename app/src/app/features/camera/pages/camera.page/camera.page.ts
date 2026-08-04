@@ -1,10 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { CommonModule } from '@angular/common';
 import {
   IonSpinner,
-  IonButton,
   IonIcon,
   AlertController,
 } from '@ionic/angular/standalone';
@@ -41,8 +41,8 @@ type ViewState = 'idle' | 'loading' | 'captured';
     ShellComponent,
     CommonModule,
     HeaderComponent,
+    ButtonComponent,
     IonSpinner,
-    IonButton,
     IonIcon,
   ],
   templateUrl: './camera.page.html',

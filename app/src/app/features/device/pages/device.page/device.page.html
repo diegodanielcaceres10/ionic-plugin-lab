@@ -13,26 +13,19 @@
   />
 
   <section class="buttons">
-    <ion-button
-      expand="block"
-      shape="round"
-      class="primary-cta"
+    <app-ui-button
+      [text]="state() === 'loading' ? 'Refreshing...' : 'Refresh Info'"
+      icon="refresh-outline"
       [disabled]="state() === 'loading'"
-      (click)="loadInfo()"
-    >
-      <ion-icon slot="start" name="refresh-outline"></ion-icon>
-      {{ state() === 'loading' ? 'Refreshing...' : 'Refresh Info' }}
-    </ion-button>
-    <ion-button
-      expand="block"
-      shape="round"
-      fill="outline"
+      (buttonClick)="loadInfo()"
+    />
+    <app-ui-button
+      text="Copy JSON"
+      icon="copy-outline"
+      variant="outline"
       [disabled]="state() !== 'obtained'"
-      (click)="copyJson()"
-    >
-      <ion-icon slot="start" name="copy-outline"></ion-icon>
-      Copy JSON
-    </ion-button>
+      (buttonClick)="copyJson()"
+    />
   </section>
 
   @if (state() === 'loading' && !snapshot()) {

@@ -29,25 +29,19 @@
   </section>
 
   <section class="buttons">
-    <ion-button
-      expand="block"
-      shape="round"
+    <app-ui-button
+      text="Open Camera"
+      icon="camera-outline"
       [disabled]="state() === 'loading'"
-      (click)="openCamera()"
-    >
-      <ion-icon slot="start" name="camera-outline"></ion-icon>
-      {{ state() === 'captured' ? 'Take Another Photo' : 'Open Camera' }}
-    </ion-button>
-    <ion-button
-      expand="block"
-      shape="round"
-      fill="outline"
+      (buttonClick)="openCamera()"
+    />
+    <app-ui-button
+      text="Choose from Gallery"
+      icon="image-outline"
+      variant="outline"
       [disabled]="state() === 'loading'"
-      (click)="chooseFromGallery()"
-    >
-      <ion-icon slot="start" name="image-outline"></ion-icon>
-      Choose from Gallery
-    </ion-button>
+      (buttonClick)="chooseFromGallery()"
+    />
   </section>
 
   <section class="info">

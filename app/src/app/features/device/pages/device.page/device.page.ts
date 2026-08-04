@@ -2,7 +2,8 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
-import { IonSpinner, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { IonSpinner, IonIcon } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import { DeviceService, DeviceSnapshot } from '../../data/device.service';
 
@@ -26,8 +27,8 @@ interface InfoRow {
     ShellComponent,
     HeaderComponent,
     BannerComponent,
+    ButtonComponent,
     IonSpinner,
-    IonButton,
     IonIcon,
   ],
   templateUrl: './device.page.html',

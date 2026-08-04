@@ -1,0 +1,14 @@
+<ion-button
+  [class]="size()"
+  expand="block"
+  shape="round"
+  [fill]="variant()"
+  [size]="size()"
+  [disabled]="disabled()"
+  (click)="handleClick()"
+>
+  @if (icon()) {
+    <ion-icon slot="start" [name]="icon()"></ion-icon>
+  }
+  <span>{{ text() }}</span>
+</ion-button>

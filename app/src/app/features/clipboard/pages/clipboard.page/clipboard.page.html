@@ -22,16 +22,21 @@
       autoGrow="true"
       rows="3"
     ></ion-textarea>
-    <div class="input-card__actions">
-      <ion-button size="small" fill="outline" (click)="clearInput()">
-        <ion-icon slot="start" name="trash-outline"></ion-icon>
-        Clear Input
-      </ion-button>
-      <ion-button size="small" fill="outline" (click)="pasteIntoInput()">
-        <ion-icon slot="start" name="download-outline"></ion-icon>
-        Paste into Input
-      </ion-button>
-    </div>
+  </section>
+
+  <section class="buttons">
+    <app-ui-button
+      text="Clear Input"
+      icon="trash-outline"
+      variant="outline"
+      (buttonClick)="clearInput()"
+    />
+    <app-ui-button
+      text="Paste into Input"
+      icon="download-outline"
+      variant="outline"
+      (buttonClick)="pasteIntoInput()"
+    />
   </section>
 
   <h3 class="section-title">Quick Actions</h3>

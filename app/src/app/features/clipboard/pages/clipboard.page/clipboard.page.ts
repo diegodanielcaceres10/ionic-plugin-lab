@@ -3,7 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
-import { IonTextarea, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { IonTextarea, IonIcon } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import {
   ClipboardService,
@@ -30,8 +31,8 @@ interface QuickAction {
     ShellComponent,
     HeaderComponent,
     BannerComponent,
+    ButtonComponent,
     IonTextarea,
-    IonButton,
     IonIcon,
   ],
   templateUrl: './clipboard.page.html',

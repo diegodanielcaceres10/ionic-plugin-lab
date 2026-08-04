@@ -41,15 +41,12 @@
       </div>
     </div>
 
-    <ion-button
-      expand="block"
-      shape="round"
-      class="primary-cta"
-      (click)="openCurrentUrl()"
-    >
-      <ion-icon slot="start" name="open-outline"></ion-icon>
-      Open Browser
-    </ion-button>
+    <app-ui-button
+      text="Open Browser"
+      icon="open-outline"
+      (buttonClick)="openCurrentUrl()"
+    />
+
     <p class="url-card__secure">
       <ion-icon name="lock-closed-outline"></ion-icon>
       Opens in a secure in-app browser

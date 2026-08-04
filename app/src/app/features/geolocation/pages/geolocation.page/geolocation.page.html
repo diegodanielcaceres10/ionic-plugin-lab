@@ -59,26 +59,19 @@
   </section>
 
   <section class="buttons">
-    <ion-button
-      expand="block"
-      shape="round"
-      class="primary-cta"
+    <app-ui-button
+      [text]="state() === 'loading' ? 'Locating...' : 'Get Current Location'"
+      icon="locate-outline"
       [disabled]="state() === 'loading'"
-      (click)="getCurrentLocation()"
-    >
-      <ion-icon slot="start" name="locate-outline"></ion-icon>
-      {{ state() === 'loading' ? 'Locating...' : 'Get Current Location' }}
-    </ion-button>
-    <ion-button
-      expand="block"
-      shape="round"
-      fill="outline"
-      [class.active]="watching()"
-      (click)="toggleWatch()"
-    >
-      <ion-icon slot="start" name="time-outline"></ion-icon>
-      {{ watching() ? 'Stop Watching' : 'Watch Position' }}
-    </ion-button>
+      (buttonClick)="getCurrentLocation()"
+    />
+    <app-ui-button
+      [text]="watching() ? 'Stop Watching' : 'Watch Position'"
+      icon="time-outline"
+      variant="outline"
+      [disabled]="state() !== 'obtained'"
+      (buttonClick)="toggleWatch()"
+    />
   </section>
 
   <section class="info">

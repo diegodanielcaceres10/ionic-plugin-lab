@@ -12,6 +12,7 @@ import { DecimalPipe } from '@angular/common';
 import { Geolocation, Position } from '@capacitor/geolocation';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { IonSpinner, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { ActionSheetController } from '@ionic/angular';
 
@@ -42,6 +43,7 @@ type PageState = 'idle' | 'loading' | 'obtained' | 'error';
     DecimalPipe,
     ShellComponent,
     HeaderComponent,
+    ButtonComponent,
     IonSpinner,
     IonButton,
     IonIcon,

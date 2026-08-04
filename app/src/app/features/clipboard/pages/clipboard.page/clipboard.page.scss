@@ -30,15 +30,13 @@
     font-size: 13.5px;
     margin-bottom: 12px;
   }
+}
 
-  &__actions {
-    display: flex;
-    gap: 10px;
-    ion-button {
-      flex: 1;
-      margin: 0;
-    }
-  }
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .section-title {
