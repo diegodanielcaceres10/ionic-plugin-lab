@@ -12,7 +12,8 @@ type AppTabsTypes =
   | 'geolocation'
   | 'device'
   | 'browser'
-  | 'filesystem';
+  | 'filesystem'
+  | 'network';
 
 @Component({
   selector: 'app-shell',

@@ -1,0 +1,109 @@
+<app-shell activePage="network">
+  <app-ui-header
+    title="Network"
+    subtitle="Monitor network connectivity and status."
+  />
+
+  <section class="status-card" [class.status-card--offline]="!isConnected()">
+    <div class="status-card__icon">
+      <ion-icon [name]="connectionIcon()"></ion-icon>
+    </div>
+    <div class="status-card__text">
+      <span class="status-card__title">
+        {{ isConnected() ? 'Connected' : 'No Connection' }}
+      </span>
+      <span class="status-card__subtitle">
+        {{ status()?.connectionType ?? 'unknown' }}
+      </span>
+    </div>
+    <span
+      class="status-card__badge"
+      [class.status-card__badge-offline]="!isConnected()"
+    >
+      <ion-icon
+        [name]="isConnected() ? 'checkmark-circle' : 'close-circle'"
+      ></ion-icon>
+      {{ isConnected() ? 'Online' : 'Offline' }}
+    </span>
+  </section>
+
+  <ion-button
+    expand="block"
+    shape="round"
+    class="primary-cta"
+    (click)="refreshStatus()"
+  >
+    <ion-icon slot="start" name="refresh-outline"></ion-icon>
+    Refresh Status
+  </ion-button>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Connection Information</h3>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="link-outline"></ion-icon><span>Connected</span>
+      </div>
+      <span class="info__value">{{ isConnected() ? 'Yes' : 'No' }}</span>
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon [name]="connectionIcon()"></ion-icon
+        ><span>Connection Type</span>
+      </div>
+      <span class="info__value">{{ status()?.connectionType ?? '—' }}</span>
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="hardware-chip-outline"></ion-icon><span>Platform</span>
+      </div>
+      <span class="info__value">{{ devicePlatform() || '—' }}</span>
+    </div>
+  </section>
+
+  <section class="events">
+    <div class="events__header">
+      <div class="events__title">
+        <ion-icon name="pulse-outline"></ion-icon>
+        <h3>Status Changes</h3>
+      </div>
+      <button class="events__clear" (click)="clearEvents()">
+        <ion-icon name="trash-outline"></ion-icon>
+        Clear
+      </button>
+    </div>
+
+    @if (events().length === 0) {
+    <p class="events__empty">
+      No changes logged yet — toggle Wi-Fi or airplane mode to see events here.
+    </p>
+    } @else {
+    <div class="events__list">
+      @for (event of events(); track event.timestamp) {
+      <div
+        class="event-item"
+        [class.event-item--offline]="!event.status.connected"
+      >
+        <ion-icon
+          [name]="event.status.connected ? 'checkmark-circle' : 'close-circle'"
+        ></ion-icon>
+        <div class="event-item__body">
+          <div class="event-item__row">
+            <span class="event-item__label">
+              {{ event.status.connected ? 'Connected' : 'Disconnected' }} — {{
+              event.status.connectionType }}
+            </span>
+            <span class="event-item__time"
+              >{{ timeLabel(event.timestamp) }}</span
+            >
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </section>
+</app-shell>

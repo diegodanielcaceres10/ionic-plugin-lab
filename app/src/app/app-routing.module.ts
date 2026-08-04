@@ -45,6 +45,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'network',
+    loadComponent: () =>
+      import('./features/network/pages/network.page/network.page').then(
+        (m) => m.NetworkPage,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },

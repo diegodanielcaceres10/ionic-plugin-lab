@@ -80,6 +80,7 @@ export class HomePage {
   officialPlugins: PluginItem[] = [
     { icon: 'camera-outline', label: 'Camera', link: 'camera' },
     { icon: 'location-outline', label: 'Geolocation', link: 'geolocation' },
+    { icon: 'wifi-outline', label: 'Network', link: 'network' },
     { icon: 'phone-portrait-outline', label: 'Device', link: 'device' },
     { icon: 'globe-outline', label: 'Browser', link: 'browser' },
     { icon: 'folder-outline', label: 'Filesystem', link: 'filesystem' },
@@ -88,7 +89,6 @@ export class HomePage {
     { icon: 'notifications-outline', label: 'Local Notifications' },
     { icon: 'paper-plane-outline', label: 'Push Notifications' },
     { icon: 'share-social-outline', label: 'Share' },
-    { icon: 'wifi-outline', label: 'Network' },
     { icon: 'stats-chart-outline', label: 'StatusBar' },
     { icon: 'water-outline', label: 'SplashScreen' },
     { icon: 'options-outline', label: 'Preferences' },

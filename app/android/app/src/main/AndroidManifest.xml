@@ -82,4 +82,9 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+
+    <!-- Network: required to read connection status (online/offline, wifi/cellular).
+         This is a "normal" permission — Android grants it automatically at
+         install time, no runtime prompt needed. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 </manifest>
