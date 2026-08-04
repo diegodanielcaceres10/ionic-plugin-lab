@@ -59,6 +59,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'clipboard',
+    loadComponent: () =>
+      import('./features/clipboard/pages/clipboard.page/clipboard.page').then(
+        (m) => m.ClipboardPage,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },

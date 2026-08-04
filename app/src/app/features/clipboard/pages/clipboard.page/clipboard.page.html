@@ -1,0 +1,99 @@
+<app-shell activePage="clipboard">
+  <app-ui-header
+    title="Clipboard"
+    subtitle="Copy and read content from the system clipboard."
+  />
+
+  <section class="clipboard-card">
+    <div class="clipboard-card__icon">
+      <ion-icon [name]="categoryIcon()"></ion-icon>
+    </div>
+    <div class="clipboard-card__text">
+      <span class="clipboard-card__title">Clipboard Content</span>
+      @if (clipboard(); as c) { @if (c.category === 'image') {
+      <span class="clipboard-card__preview">Image data detected</span>
+      } @else {
+      <span class="clipboard-card__preview"
+        >{{ c.value || 'Clipboard is empty' }}</span
+      >
+      } } @else {
+      <span class="clipboard-card__preview">Loading…</span>
+      }
+    </div>
+    <span
+      class="clipboard-card__badge clipboard-card__badge-{{ clipboard()?.category ?? 'empty' }}"
+    >
+      {{ categoryLabel() }}
+    </span>
+  </section>
+
+  <section class="input-card">
+    <div class="input-card__header">
+      <ion-icon name="create-outline"></ion-icon>
+      <h3>Demo Input</h3>
+    </div>
+    <ion-textarea
+      [(ngModel)]="inputText"
+      placeholder="Type something to copy, or paste clipboard content here…"
+      autoGrow="true"
+      rows="3"
+    ></ion-textarea>
+    <div class="input-card__actions">
+      <ion-button size="small" fill="outline" (click)="clearInput()">
+        <ion-icon slot="start" name="trash-outline"></ion-icon>
+        Clear Input
+      </ion-button>
+      <ion-button size="small" fill="outline" (click)="pasteIntoInput()">
+        <ion-icon slot="start" name="download-outline"></ion-icon>
+        Paste into Input
+      </ion-button>
+    </div>
+  </section>
+
+  <h3 class="section-title">Quick Actions</h3>
+  <div class="actions-grid">
+    @for (item of quickActions; track item.id) {
+    <button class="action-card" (click)="item.action()">
+      <div class="action-card__icon">
+        <ion-icon [name]="item.icon"></ion-icon>
+      </div>
+      <span class="action-card__title">{{ item.title }}</span>
+    </button>
+    }
+  </div>
+
+  @if (infoExpanded()) {
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Clipboard Info</h3>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon [name]="categoryIcon()"></ion-icon><span>Detected Type</span>
+      </div>
+      <span class="info__value">{{ categoryLabel() }}</span>
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="code-slash-outline"></ion-icon
+        ><span>Raw MIME Type</span>
+      </div>
+      <span class="info__value">{{ clipboard()?.rawType ?? '—' }}</span>
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="text-outline"></ion-icon><span>Character Count</span>
+      </div>
+      <span class="info__value">{{ characterCount() }}</span>
+    </div>
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="time-outline"></ion-icon><span>Last Read</span>
+      </div>
+      <span class="info__value">{{ timeLabel(lastReadAt()) }}</span>
+    </div>
+  </section>
+  }
+</app-shell>

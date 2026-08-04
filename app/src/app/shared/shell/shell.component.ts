@@ -14,7 +14,8 @@ type AppTabsTypes =
   | 'browser'
   | 'filesystem'
   | 'network'
-  | 'haptics';
+  | 'haptics'
+  | 'clipboard';
 
 @Component({
   selector: 'app-shell',
