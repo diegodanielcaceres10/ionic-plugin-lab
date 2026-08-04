@@ -6,11 +6,13 @@ import {
   computed,
   inject,
 } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
 import { Capacitor } from '@capacitor/core';
 import { Device } from '@capacitor/device';
 import { ConnectionStatus } from '@capacitor/network';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
+import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
 import { IonButton, IonIcon } from '@ionic/angular/standalone';
 import { NetworkService } from '../../data/network.service';
 
@@ -27,7 +29,14 @@ interface NetworkEvent {
 @Component({
   selector: 'app-network',
   standalone: true,
-  imports: [ShellComponent, HeaderComponent, IonButton, IonIcon],
+  imports: [
+    TitleCasePipe,
+    ShellComponent,
+    HeaderComponent,
+    BannerComponent,
+    IonButton,
+    IonIcon,
+  ],
   templateUrl: './network.page.html',
   styleUrls: ['./network.page.scss'],
 })

@@ -4,28 +4,12 @@
     subtitle="Copy and read content from the system clipboard."
   />
 
-  <section class="clipboard-card">
-    <div class="clipboard-card__icon">
-      <ion-icon [name]="categoryIcon()"></ion-icon>
-    </div>
-    <div class="clipboard-card__text">
-      <span class="clipboard-card__title">Clipboard Content</span>
-      @if (clipboard(); as c) { @if (c.category === 'image') {
-      <span class="clipboard-card__preview">Image data detected</span>
-      } @else {
-      <span class="clipboard-card__preview"
-        >{{ c.value || 'Clipboard is empty' }}</span
-      >
-      } } @else {
-      <span class="clipboard-card__preview">Loading…</span>
-      }
-    </div>
-    <span
-      class="clipboard-card__badge clipboard-card__badge-{{ clipboard()?.category ?? 'empty' }}"
-    >
-      {{ categoryLabel() }}
-    </span>
-  </section>
+  <app-ui-banner
+    title="Clipboard Content"
+    [subtitle]="clipboard()?.category === 'image' ? 'Image data detected' : clipboard()?.value || 'Clipboard is empty'"
+    [bannerIcon]="categoryIcon()"
+    [badge]="categoryLabel()"
+  />
 
   <section class="input-card">
     <div class="input-card__header">

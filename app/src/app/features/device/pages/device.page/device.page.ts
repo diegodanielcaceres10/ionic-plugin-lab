@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
+import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
 import { IonSpinner, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import { DeviceService, DeviceSnapshot } from '../../data/device.service';
@@ -21,7 +22,14 @@ interface InfoRow {
 @Component({
   selector: 'app-device',
   standalone: true,
-  imports: [ShellComponent, HeaderComponent, IonSpinner, IonButton, IonIcon],
+  imports: [
+    ShellComponent,
+    HeaderComponent,
+    BannerComponent,
+    IonSpinner,
+    IonButton,
+    IonIcon,
+  ],
   templateUrl: './device.page.html',
   styleUrls: ['./device.page.scss'],
 })

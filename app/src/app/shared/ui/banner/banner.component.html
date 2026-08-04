@@ -1,0 +1,21 @@
+<section class="banner" [class]="`banner-${variant()}`">
+  <div class="banner__icon" [class]="`banner__icon-${variant()}`">
+    <ion-icon [name]="bannerIcon()"></ion-icon>
+  </div>
+  <div class="banner__text">
+    <span class="banner__title">
+      {{ title() }}
+    </span>
+    <span class="banner__subtitle">
+      {{ subtitle() }}
+    </span>
+  </div>
+  @if (badge()) {
+    <span class="banner__badge" [class]="`banner__badge-${variant()}`">
+      @if (badgeIcon()) {
+        <ion-icon [name]="badgeIcon()"></ion-icon>
+      }
+      {{ badge() }}
+    </span>
+  }
+</section>

@@ -4,29 +4,13 @@
     subtitle="Get information about the current device."
   />
 
-  <section class="banner" [class.banner--virtual]="snapshot()?.info?.isVirtual">
-    <div class="banner__icon">
-      <ion-icon name="phone-portrait-outline"></ion-icon>
-    </div>
-    <div class="banner__text">
-      <span class="banner__title">
-        {{ snapshot()?.info?.isVirtual ? 'Virtual Device' : 'Physical Device' }}
-      </span>
-      <span class="banner__subtitle">
-        {{ snapshot()?.info?.isVirtual ? 'You are running on a simulator or
-        emulator.' : 'You are running on a real device.' }}
-      </span>
-    </div>
-    @if (state() === 'obtained') {
-    <span
-      class="banner__badge"
-      [class.banner__badge-virtual]="snapshot()?.info?.isVirtual"
-    >
-      <ion-icon name="checkmark-circle"></ion-icon>
-      {{ snapshot()?.info?.isVirtual ? 'Virtual Device' : 'Real Device' }}
-    </span>
-    }
-  </section>
+  <app-ui-banner
+    [title]="snapshot()?.info?.isVirtual ? 'Virtual Device' : 'Physical Device'"
+    [subtitle]="snapshot()?.info?.isVirtual ? 'You are running on a simulator or emulator.' : 'You are running on a real device.'"
+    bannerIcon="phone-portrait-outline"
+    badgeIcon="checkmark-circle"
+    [badge]="state() === 'obtained' ? snapshot()?.info?.isVirtual ? 'Virtual Device' : 'Real Device' : ''"
+  />
 
   <section class="buttons">
     <ion-button

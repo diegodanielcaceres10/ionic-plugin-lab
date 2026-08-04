@@ -2,6 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
+import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
 import { IonTextarea, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import {
@@ -28,6 +29,7 @@ interface QuickAction {
     FormsModule,
     ShellComponent,
     HeaderComponent,
+    BannerComponent,
     IonTextarea,
     IonButton,
     IonIcon,

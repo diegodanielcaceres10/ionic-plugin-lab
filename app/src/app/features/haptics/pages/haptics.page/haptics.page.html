@@ -4,28 +4,12 @@
     subtitle="Provide tactile feedback to improve the user experience."
   />
 
-  <section class="platform-support">
-    <div class="platform-support__item">
-      <div
-        class="platform-support__icon"
-        [class.platform-support__icon-unsupported]="!hapticsSupported()"
-      >
-        <ion-icon
-          [name]="hapticsSupported() ? 'shield-checkmark-outline' : 'shield-outline'"
-        ></ion-icon>
-      </div>
-      <div class="platform-support__text">
-        <strong
-          >{{ hapticsSupported() ? 'Haptics Supported' : 'Haptics Not Supported'
-          }}</strong
-        >
-        <p>
-          {{ hapticsSupported() ? 'This device supports haptic feedback.' :
-          'This browser/device does not support vibration.' }}
-        </p>
-      </div>
-    </div>
-  </section>
+  <app-ui-banner
+    [title]="hapticsSupported() ? 'Haptics Supported' : 'Haptics Not Supported'"
+    [subtitle]="hapticsSupported() ? 'This device supports haptic feedback.' : 'This browser/device does not support vibration.'"
+    [bannerIcon]="hapticsSupported() ? 'shield-checkmark-outline' : 'shield-outline'"
+    [variant]="hapticsSupported() ? 'success' : 'disabled'"
+  />
 
   <h3 class="section-title">Impact Feedback</h3>
   <div class="feedback-grid">
