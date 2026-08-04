@@ -1,0 +1,118 @@
+<app-shell activePage="device">
+  <app-ui-header
+    title="Device"
+    subtitle="Get information about the current device."
+  />
+
+  <section class="banner" [class.banner--virtual]="snapshot()?.info?.isVirtual">
+    <div class="banner__icon">
+      <ion-icon name="phone-portrait-outline"></ion-icon>
+    </div>
+    <div class="banner__text">
+      <span class="banner__title">
+        {{ snapshot()?.info?.isVirtual ? 'Virtual Device' : 'Physical Device' }}
+      </span>
+      <span class="banner__subtitle">
+        {{ snapshot()?.info?.isVirtual ? 'You are running on a simulator or
+        emulator.' : 'You are running on a real device.' }}
+      </span>
+    </div>
+    @if (state() === 'obtained') {
+    <span
+      class="banner__badge"
+      [class.banner__badge-virtual]="snapshot()?.info?.isVirtual"
+    >
+      <ion-icon name="checkmark-circle"></ion-icon>
+      {{ snapshot()?.info?.isVirtual ? 'Virtual Device' : 'Real Device' }}
+    </span>
+    }
+  </section>
+
+  <section class="buttons">
+    <ion-button
+      expand="block"
+      shape="round"
+      class="primary-cta"
+      [disabled]="state() === 'loading'"
+      (click)="loadInfo()"
+    >
+      <ion-icon slot="start" name="refresh-outline"></ion-icon>
+      {{ state() === 'loading' ? 'Refreshing...' : 'Refresh Info' }}
+    </ion-button>
+    <ion-button
+      expand="block"
+      shape="round"
+      fill="outline"
+      [disabled]="state() !== 'obtained'"
+      (click)="copyJson()"
+    >
+      <ion-icon slot="start" name="copy-outline"></ion-icon>
+      Copy JSON
+    </ion-button>
+  </section>
+
+  @if (state() === 'loading' && !snapshot()) {
+  <div class="card__spinner">
+    <ion-spinner name="circular" color="primary"></ion-spinner>
+  </div>
+  } @else if (state() === 'error') {
+  <div class="card__error">
+    <div class="card__icon">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+    </div>
+    <h2>{{ errorMessage() }}</h2>
+  </div>
+  } @if (snapshot(); as s) {
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Device Information</h3>
+    </div>
+
+    @for (row of infoRows(); track row.label) {
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon [name]="row.icon"></ion-icon>
+        <span>{{ row.label }}</span>
+      </div>
+      <div class="info__value-group">
+        <span class="info__value">{{ row.value }}</span>
+        <button class="info__copy" (click)="copyValue(row.value)">
+          <ion-icon name="copy-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+    }
+  </section>
+
+  <section class="identifier">
+    <div class="identifier__header">
+      <ion-icon name="finger-print-outline"></ion-icon>
+      <h3>Device Identifier</h3>
+    </div>
+    <div class="identifier__box">
+      <span class="identifier__value">{{ s.id }}</span>
+      <button class="identifier__copy" (click)="copyValue(s.id)">
+        <ion-icon name="copy-outline"></ion-icon>
+      </button>
+    </div>
+    <p class="identifier__hint">
+      This identifier is unique to this installation of the app.
+    </p>
+  </section>
+
+  <section class="json">
+    <div class="json__header">
+      <div class="json__title">
+        <ion-icon name="code-slash-outline"></ion-icon>
+        <h3>Raw Response (JSON)</h3>
+      </div>
+      <button class="json__copy-link" (click)="copyJson()">
+        <ion-icon name="copy-outline"></ion-icon>
+        Copy JSON
+      </button>
+    </div>
+    <pre class="json__block">{{ rawJson() }}</pre>
+  </section>
+  }
+</app-shell>

@@ -19,8 +19,15 @@ const routes: Routes = [
   {
     path: 'geolocation',
     loadComponent: () =>
-      import('./features/geolocation/pages/geoloaction.page/geolocation.page').then(
+      import('./features/geolocation/pages/geolocation.page/geolocation.page').then(
         (m) => m.GeolocationPage,
+      ),
+  },
+  {
+    path: 'device',
+    loadComponent: () =>
+      import('./features/device/pages/device.page/device.page').then(
+        (m) => m.DevicePage,
       ),
   },
   {

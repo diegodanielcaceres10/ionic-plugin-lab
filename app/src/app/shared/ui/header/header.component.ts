@@ -1,10 +1,9 @@
 import { Component, input } from '@angular/core';
-import { IonIcon } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-ui-header',
   standalone: true,
-  imports: [IonIcon],
+  imports: [],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })

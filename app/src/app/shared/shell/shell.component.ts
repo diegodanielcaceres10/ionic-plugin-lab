@@ -9,7 +9,8 @@ type AppTabsTypes =
   | 'favorites'
   | 'settings'
   | 'camera'
-  | 'geolocation';
+  | 'geolocation'
+  | 'device';
 
 @Component({
   selector: 'app-shell',
