@@ -52,6 +52,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'haptics',
+    loadComponent: () =>
+      import('./features/haptics/pages/haptics.page/haptics.page').then(
+        (m) => m.HapticsPage,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },

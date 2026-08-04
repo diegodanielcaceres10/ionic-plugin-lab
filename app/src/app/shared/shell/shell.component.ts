@@ -13,7 +13,8 @@ type AppTabsTypes =
   | 'device'
   | 'browser'
   | 'filesystem'
-  | 'network';
+  | 'network'
+  | 'haptics';
 
 @Component({
   selector: 'app-shell',

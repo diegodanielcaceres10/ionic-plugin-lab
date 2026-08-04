@@ -1,0 +1,77 @@
+<app-shell activePage="haptics">
+  <app-ui-header
+    title="Haptics"
+    subtitle="Provide tactile feedback to improve the user experience."
+  />
+
+  <section class="platform-support">
+    <div class="platform-support__item">
+      <div
+        class="platform-support__icon"
+        [class.platform-support__icon-unsupported]="!hapticsSupported()"
+      >
+        <ion-icon
+          [name]="hapticsSupported() ? 'shield-checkmark-outline' : 'shield-outline'"
+        ></ion-icon>
+      </div>
+      <div class="platform-support__text">
+        <strong
+          >{{ hapticsSupported() ? 'Haptics Supported' : 'Haptics Not Supported'
+          }}</strong
+        >
+        <p>
+          {{ hapticsSupported() ? 'This device supports haptic feedback.' :
+          'This browser/device does not support vibration.' }}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <h3 class="section-title">Impact Feedback</h3>
+  <div class="feedback-grid">
+    @for (card of impactCards; track card.id) {
+    <div class="feedback-card">
+      <div class="feedback-card__icon feedback-card__icon-impact">
+        <ion-icon [name]="card.icon"></ion-icon>
+      </div>
+      <span class="feedback-card__title">{{ card.title }}</span>
+      <button class="feedback-card__test" (click)="trigger(card)">
+        <ion-icon name="pulse-outline"></ion-icon>
+        TEST
+      </button>
+    </div>
+    }
+  </div>
+
+  <h3 class="section-title">Notification Feedback</h3>
+  <div class="feedback-grid">
+    @for (card of notificationCards; track card.id) {
+    <div class="feedback-card">
+      <div class="feedback-card__icon feedback-card__icon-{{ card.id }}">
+        <ion-icon [name]="card.icon"></ion-icon>
+      </div>
+      <span class="feedback-card__title">{{ card.title }}</span>
+      <button class="feedback-card__test" (click)="trigger(card)">
+        <ion-icon name="pulse-outline"></ion-icon>
+        TEST
+      </button>
+    </div>
+    }
+  </div>
+
+  <h3 class="section-title">Selection Feedback</h3>
+  <div class="selection-row">
+    @for (card of selectionCards; track card.id; let last = $last) {
+    <div class="selection-item" [class.selection-item--divider]="!last">
+      <div class="selection-item__icon">
+        <ion-icon [name]="card.icon"></ion-icon>
+      </div>
+      <span class="selection-item__title">{{ card.title }}</span>
+      <button class="feedback-card__test" (click)="trigger(card)">
+        <ion-icon name="pulse-outline"></ion-icon>
+        TEST
+      </button>
+    </div>
+    }
+  </div>
+</app-shell>

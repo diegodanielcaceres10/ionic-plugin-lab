@@ -84,7 +84,7 @@ export class HomePage {
     { icon: 'phone-portrait-outline', label: 'Device', link: 'device' },
     { icon: 'globe-outline', label: 'Browser', link: 'browser' },
     { icon: 'folder-outline', label: 'Filesystem', link: 'filesystem' },
-    { icon: 'phone-portrait-outline', label: 'Haptics' },
+    { icon: 'phone-portrait-outline', label: 'Haptics', link: 'haptics' },
     { icon: 'clipboard-outline', label: 'Clipboard' },
     { icon: 'notifications-outline', label: 'Local Notifications' },
     { icon: 'paper-plane-outline', label: 'Push Notifications' },
