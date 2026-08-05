@@ -1,75 +1,75 @@
 <app-shell activePage="geolocation">
   <app-ui-header
     title="Geolocation"
-    subtitle="Get the current location of the device."
+    subtitle="Track your position using the Capacitor Geolocation plugin."
   />
 
   <section class="card">
-    @if (state() === 'loading') {
-    <div class="card__spinner">
-      <ion-spinner name="circular" color="primary"></ion-spinner>
-    </div>
-    } @else if (state() === 'obtained') {
+    <!-- The map container is ALWAYS in the DOM once the page exists, so the
+         Leaflet instance in MapService never loses its attached element. -->
     <div class="card__map">
-      <div #mapEl class="card__container"></div>
-      <span class="card__badge card__badge-success">
-        <ion-icon name="checkmark-circle"></ion-icon>
-        Location obtained
+      <div id="geo-map" class="card__map-canvas"></div>
+      @if (state() === 'watching') {
+      <span class="card__badge">
+        <ion-icon name="radio-button-on-outline"></ion-icon>
+        Watching
       </span>
+      }
+    </div>
 
-      <ion-button
-        class="card__recenter"
-        fill="clear"
-        (click)="getCurrentLocation()"
-      >
-        <ion-icon slot="icon-only" name="locate-outline"></ion-icon>
-      </ion-button>
-    </div>
-    } @else if (position(); as p) {
-    <div class="card__position">
-      <div class="card__button">
-        <ion-icon name="location"></ion-icon>
+    <!-- Overlay for every non-map state. This part can be freely
+         destroyed/recreated by @if; it holds no map state. -->
+    @if (state() !== 'ready' && state() !== 'watching') {
+    <div class="card__overlay">
+      @if (state() === 'locating') {
+      <div class="card__spinner">
+        <ion-spinner name="circular" color="primary"></ion-spinner>
+        <p>Getting your location...</p>
       </div>
-      <div class="card__text">
-        <span class="card__title">Current Position</span>
-        <span class="card__address">
-          {{ address() ?? 'Address unavailable' }}
-        </span>
-        <span class="card__accuracy">
-          Accuracy: {{ p.accuracy | number:'1.1-1' }} m
-        </span>
+      } @else if (state() === 'denied') {
+      <div class="card__empty">
+        <div class="card__icon card__icon--warning">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+        </div>
+        <h2>Location permission denied</h2>
+        <p>Enable location access from your settings to see the map.</p>
       </div>
-    </div>
-    } @else if (state() === 'error') {
-    <div class="card__error">
-      <div class="card__icon">
-        <ion-icon name="alert-circle-outline"></ion-icon>
+      } @else if (state() === 'error') {
+      <div class="card__empty">
+        <div class="card__icon card__icon--warning">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+        </div>
+        <h2>Couldn't get your location</h2>
+        <p>Make sure location services are enabled and try again.</p>
       </div>
-      <h2>{{ errorMessage() }}</h2>
-    </div>
-    } @else {
-    <div class="card__empty">
-      <div class="card__icon">
-        <ion-icon name="navigate-outline"></ion-icon>
+      } @else {
+      <div class="card__empty">
+        <div class="card__icon">
+          <ion-icon name="location-outline"></ion-icon>
+        </div>
+        <h2>No location yet</h2>
+        <p>
+          Tap the button below to get your current location and show it on the
+          map.
+        </p>
       </div>
-      <h2>No location obtained yet</h2>
-      <p>Tap the button below to get your current location.</p>
+      }
     </div>
     }
   </section>
 
   <section class="buttons">
     <app-ui-button
-      [text]="state() === 'loading' ? 'Locating...' : 'Get Current Location'"
-      icon="locate-outline"
-      [disabled]="state() === 'loading'"
+      text="Get Current Location"
+      icon="navigate-outline"
+      [disabled]="state() === 'locating'"
       (buttonClick)="getCurrentLocation()"
     />
     <app-ui-button
-      [text]="watching() ? 'Stop Watching' : 'Watch Position'"
-      icon="time-outline"
+      [text]="isWatching ? 'Stop Watching' : 'Start Watching'"
+      [icon]="isWatching ? 'stop-outline' : 'play-outline'"
       variant="outline"
-      [disabled]="state() !== 'obtained'"
+      [disabled]="state() !== 'ready' && state() !== 'watching'"
       (buttonClick)="toggleWatch()"
     />
   </section>
@@ -77,63 +77,59 @@
   <section class="info">
     <div class="info__header">
       <ion-icon name="information-circle-outline"></ion-icon>
-      <h3>Location Information</h3>
+      <h3>Position Information</h3>
     </div>
 
     <div class="info__row">
       <div class="info__label">
-        <ion-icon name="locate-outline"></ion-icon><span>Latitude</span>
-      </div>
-      <span class="info__value">{{ position()?.latitude ?? '—' }}</span>
-    </div>
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon name="locate-outline"></ion-icon><span>Longitude</span>
-      </div>
-      <span class="info__value">{{ position()?.longitude ?? '—' }}</span>
-    </div>
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon name="locate-outline"></ion-icon><span>Accuracy</span>
+        <ion-icon name="location-outline"></ion-icon>
+        <span>Latitude</span>
       </div>
       <span class="info__value"
-        >{{ position()?.accuracy ? (position()!.accuracy + ' m') : '—' }}</span
+        >{{ position() ? position()!.latitude.toFixed(6) : '—' }}</span
       >
     </div>
+
     <div class="info__row">
       <div class="info__label">
-        <ion-icon name="triangle-outline"></ion-icon><span>Altitude</span>
+        <ion-icon name="location-outline"></ion-icon>
+        <span>Longitude</span>
       </div>
       <span class="info__value"
-        >{{ position()?.altitude ? (position()!.altitude + ' m') : '—' }}</span
+        >{{ position() ? position()!.longitude.toFixed(6) : '—' }}</span
       >
     </div>
+
     <div class="info__row">
       <div class="info__label">
-        <ion-icon name="speedometer-outline"></ion-icon><span>Speed</span>
+        <ion-icon name="compass-outline"></ion-icon>
+        <span>Accuracy</span>
       </div>
       <span class="info__value"
-        >{{ position()?.speed ?? '—' }}{{ position()?.speed ? ' m/s' : ''
+        >{{ position() ? (position()!.accuracy.toFixed(0) + ' m') : '—' }}</span
+      >
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="speedometer-outline"></ion-icon>
+        <span>Speed</span>
+      </div>
+      <span class="info__value"
+        >{{ position()?.speed != null ? (position()!.speed!.toFixed(1) + ' m/s')
+        : '—' }}</span
+      >
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Updated</span>
+      </div>
+      <span class="info__value"
+        >{{ position() ? (position()!.timestamp | date: 'HH:mm:ss') : '—'
         }}</span
       >
-    </div>
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon name="navigate-outline"></ion-icon><span>Heading</span>
-      </div>
-      <span class="info__value">{{ position()?.heading ?? '—' }}</span>
-    </div>
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon name="time-outline"></ion-icon><span>Timestamp</span>
-      </div>
-      <span class="info__value">{{ timestampLabel() }}</span>
-    </div>
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon name="wifi-outline"></ion-icon><span>Provider</span>
-      </div>
-      <span class="info__value">GPS</span>
     </div>
   </section>
 </app-shell>
