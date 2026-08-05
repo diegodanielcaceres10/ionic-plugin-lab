@@ -24,48 +24,26 @@
   </section>
   }
 
-  <section class="buttons">
-    <app-ui-button
-      text="Write Demo File"
-      icon="create-outline"
-      [disabled]="isBusy()"
-      (buttonClick)="writeFile()"
-    />
-    <app-ui-button
-      text="Read File"
-      icon="eye-outline"
-      variant="outline"
-      [disabled]="isBusy() || !hasFile()"
-      (buttonClick)="readFile()"
-    />
-    <app-ui-button
-      text="Append Line"
-      icon="add-circle-outline"
-      variant="outline"
-      [disabled]="isBusy() || !hasFile()"
-      (buttonClick)="appendLine()"
-    />
-    <app-ui-button
-      text="Refresh Info"
-      icon="refresh-outline"
-      variant="outline"
-      [disabled]="isBusy() || !hasFile()"
-      (buttonClick)="refreshInfo()"
-    />
-    <app-ui-button
-      text="List Directory"
-      icon="list-outline"
-      variant="outline"
-      [disabled]="isBusy()"
-      (buttonClick)="listDirectory()"
-    />
-    <app-ui-button
-      text="Delete File"
-      icon="trash-outline"
-      variant="outline"
-      [disabled]="isBusy() || !hasFile()"
-      (buttonClick)="deleteFile()"
-    />
+  <section class="actions">
+    <div class="info__header">
+      <ion-icon name="apps-outline"></ion-icon>
+      <h3>Quick Actions</h3>
+    </div>
+    <div class="actions__grid">
+      @for (action of quickActions; track action.key) {
+      <button
+        type="button"
+        class="actions__card"
+        [disabled]="isActionDisabled(action.key)"
+        (click)="onAction(action.key)"
+      >
+        <span class="actions__icon" [style.color]="action.color">
+          <ion-icon [name]="action.icon"></ion-icon>
+        </span>
+        <span class="actions__label">{{ action.label }}</span>
+      </button>
+      }
+    </div>
   </section>
 
   @if (fileContent()) {

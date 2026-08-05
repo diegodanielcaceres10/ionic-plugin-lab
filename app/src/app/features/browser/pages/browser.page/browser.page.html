@@ -1,55 +1,90 @@
 <app-shell activePage="browser">
   <app-ui-header
     title="Browser"
-    subtitle="Open websites using the Capacitor Browser plugin."
+    subtitle="Open web pages using the Capacitor Browser plugin."
   />
 
-  <section class="url-card">
-    <div class="url-card__label">
-      <ion-icon name="link-outline"></ion-icon>
-      <span>URL</span>
-    </div>
+  @if (isBrowserEnv()) {
+  <section class="notice">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span
+      >You're in the browser: pages open in a new tab, which pop-up blockers may
+      prevent.</span
+    >
+  </section>
+  }
 
-    <div class="url-card__input">
-      <ion-icon name="globe-outline"></ion-icon>
-      <ion-input
-        [(ngModel)]="url"
-        type="url"
-        placeholder="https://example.com"
-        inputmode="url"
-      ></ion-input>
-      @if (url()) {
-      <button class="url-card__clear" (click)="clearUrl()">
-        <ion-icon name="close-circle"></ion-icon>
+  <section class="quick-links">
+    <div class="info__header">
+      <ion-icon name="link-outline"></ion-icon>
+      <h3>Quick Links</h3>
+    </div>
+    <div class="quick-links__grid">
+      @for (link of quickLinks; track link.url) {
+      <button
+        type="button"
+        class="quick-links__card"
+        [disabled]="isBusy()"
+        (click)="open(link.url)"
+      >
+        <span class="quick-links__icon" [style.color]="link.color">
+          <ion-icon [name]="link.icon"></ion-icon>
+        </span>
+        <span class="quick-links__label">{{ link.label }}</span>
       </button>
       }
     </div>
+  </section>
 
-    <p class="url-card__hint">
-      Enter any URL and open it in the native browser.
-    </p>
+  <section class="custom">
+    <div class="info__header">
+      <ion-icon name="create-outline"></ion-icon>
+      <h3>Custom URL</h3>
+    </div>
+    <input
+      class="custom__input"
+      type="url"
+      [value]="customUrl()"
+      (input)="onCustomUrlChange($event)"
+      placeholder="https://example.com"
+    />
+    <app-ui-button
+      text="Open Custom URL"
+      icon="open-outline"
+      [disabled]="isBusy() || !customUrl()"
+      (buttonClick)="openCustom()"
+    />
+  </section>
 
-    <div class="quick-links">
-      <span class="quick-links__title">Quick Links</span>
-      <div class="quick-links__row">
-        @for (link of quickLinks; track link.label) {
-        <button class="quick-link" (click)="openQuickLink(link)">
-          <ion-icon [name]="link.icon"></ion-icon>
-          <span>{{ link.label }}</span>
-        </button>
-        }
-      </div>
+  <section class="buttons">
+    <app-ui-button
+      text="Close Browser"
+      icon="close-outline"
+      variant="outline"
+      [disabled]="isBusy() || !isOpen()"
+      (buttonClick)="close()"
+    />
+  </section>
+
+  @if (log().length) {
+  <section class="history">
+    <div class="info__header">
+      <ion-icon name="time-outline"></ion-icon>
+      <h3>Activity Log</h3>
     </div>
 
-    <app-ui-button
-      text="Open Browser"
-      icon="open-outline"
-      (buttonClick)="openCurrentUrl()"
-    />
-
-    <p class="url-card__secure">
-      <ion-icon name="lock-closed-outline"></ion-icon>
-      Opens in a secure in-app browser
-    </p>
+    @for (entry of log(); track entry.timestamp) {
+    <div class="history__row">
+      <span
+        class="history__dot"
+        [class]="'history__dot--' + entry.variant"
+      ></span>
+      <span class="history__label">{{ entry.message }}</span>
+      <span class="history__time"
+        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
+      >
+    </div>
+    }
   </section>
+  }
 </app-shell>

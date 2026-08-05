@@ -2,7 +2,6 @@ import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
-import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -23,6 +22,7 @@ import {
   folderOpenOutline,
   layersOutline,
   timeOutline,
+  appsOutline,
 } from 'ionicons/icons';
 import {
   FilesystemService,
@@ -42,6 +42,24 @@ interface LogEntry {
 /** How many entries to keep in the "Activity Log" list. */
 const LOG_LIMIT = 5;
 
+type ActionKey = 'write' | 'read' | 'append' | 'refresh' | 'list' | 'delete';
+
+interface QuickAction {
+  key: ActionKey;
+  label: string;
+  icon: string;
+  /** Accent color for the icon on the grid card (any valid CSS color). */
+  color: string;
+}
+
+/** Actions that only make sense once the demo file exists. */
+const REQUIRES_FILE: ReadonlySet<ActionKey> = new Set([
+  'read',
+  'append',
+  'refresh',
+  'delete',
+]);
+
 @Component({
   selector: 'app-filesystem',
   standalone: true,
@@ -49,7 +67,6 @@ const LOG_LIMIT = 5;
     ShellComponent,
     CommonModule,
     HeaderComponent,
-    ButtonComponent,
     BannerComponent,
     IonIcon,
   ],
@@ -88,6 +105,45 @@ export class FilesystemPage implements OnInit {
     this.fileInfo() ? 'checkmark-circle-outline' : undefined,
   );
 
+  readonly quickActions: QuickAction[] = [
+    {
+      key: 'write',
+      label: 'Write Demo File',
+      icon: 'create-outline',
+      color: 'var(--ion-color-primary)',
+    },
+    {
+      key: 'read',
+      label: 'Read File',
+      icon: 'eye-outline',
+      color: '#0ea5e9',
+    },
+    {
+      key: 'append',
+      label: 'Append Line',
+      icon: 'add-circle-outline',
+      color: '#2dd36f',
+    },
+    {
+      key: 'refresh',
+      label: 'Refresh Info',
+      icon: 'refresh-outline',
+      color: '#f5a623',
+    },
+    {
+      key: 'list',
+      label: 'List Directory',
+      icon: 'list-outline',
+      color: '#6c5ce7',
+    },
+    {
+      key: 'delete',
+      label: 'Delete File',
+      icon: 'trash-outline',
+      color: '#eb445a',
+    },
+  ];
+
   constructor(private filesystemService: FilesystemService) {
     addIcons({
       'create-outline': createOutline,
@@ -106,6 +162,7 @@ export class FilesystemPage implements OnInit {
       'folder-open-outline': folderOpenOutline,
       'layers-outline': layersOutline,
       'time-outline': timeOutline,
+      'apps-outline': appsOutline,
     });
   }
 
@@ -113,6 +170,38 @@ export class FilesystemPage implements OnInit {
   async ngOnInit(): Promise<void> {
     this.isBrowser.set(this.filesystemService.isBrowser());
     this.fileInfo.set(await this.filesystemService.getDemoFileInfo());
+  }
+
+  /** Routes a quick-action card tap to its corresponding operation. */
+  onAction(key: ActionKey): void {
+    switch (key) {
+      case 'write':
+        void this.writeFile();
+        break;
+      case 'read':
+        void this.readFile();
+        break;
+      case 'append':
+        void this.appendLine();
+        break;
+      case 'refresh':
+        void this.refreshInfo();
+        break;
+      case 'list':
+        void this.listDirectory();
+        break;
+      case 'delete':
+        void this.deleteFile();
+        break;
+    }
+  }
+
+  /** Write and List work with no file yet; the rest need one to already exist. */
+  isActionDisabled(key: ActionKey): boolean {
+    if (this.isBusy()) {
+      return true;
+    }
+    return REQUIRES_FILE.has(key) && !this.hasFile();
   }
 
   async writeFile(): Promise<void> {
