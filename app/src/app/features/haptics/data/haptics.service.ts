@@ -1,63 +1,46 @@
-import { Injectable, inject } from '@angular/core';
-import { AlertController } from '@ionic/angular';
+import { Injectable } from '@angular/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { PlatformService } from '../../../core/platform/platform.service';
 
 /**
- * Thin wrapper around @capacitor/haptics.
- * All feedback methods require a native platform — a browser's
- * navigator.vibrate() existing doesn't guarantee real hardware behind
- * it (e.g. desktop Chrome implements the API but has no vibration
- * motor), and none of the notification/selection patterns have a web
- * equivalent anyway. So every method alerts on web instead of either
- * silently doing nothing or half-working.
+ * Wraps @capacitor/haptics. No runtime permissions involved on either
+ * platform. On web it falls back to navigator.vibrate() when available
+ * (mostly Android Chrome) — desktop browsers and iOS Safari have no
+ * Vibration API, so calls silently produce nothing there.
  */
 @Injectable({ providedIn: 'root' })
 export class HapticsService {
-  private platform = inject(PlatformService);
-  private alertController = inject(AlertController);
+  constructor(private platformService: PlatformService) {}
 
+  /** True when running in the browser, where feedback depends on the Vibration API instead of real haptics. */
+  isBrowser(): boolean {
+    return !this.platformService.isNativePlatform();
+  }
+
+  /** True when the current browser exposes navigator.vibrate — irrelevant on native, where haptics always work. */
+  isVibrationSupported(): boolean {
+    return typeof navigator !== 'undefined' && 'vibrate' in navigator;
+  }
+
+  /** Short tap-style feedback with a given strength. */
   async impact(style: ImpactStyle): Promise<void> {
-    if (!(await this.ensureNative())) return;
     await Haptics.impact({ style });
   }
 
+  /** Feedback pattern meant to accompany a success/warning/error message. */
   async notification(type: NotificationType): Promise<void> {
-    if (!(await this.ensureNative())) return;
     await Haptics.notification({ type });
   }
 
-  async selectionStart(): Promise<void> {
-    if (!(await this.ensureNative())) return;
+  /** Simulates a drag/scroll selection gesture: start → changed → end. */
+  async selectionFeedback(): Promise<void> {
     await Haptics.selectionStart();
-  }
-
-  async selectionChanged(): Promise<void> {
-    if (!(await this.ensureNative())) return;
     await Haptics.selectionChanged();
-  }
-
-  async selectionEnd(): Promise<void> {
-    if (!(await this.ensureNative())) return;
     await Haptics.selectionEnd();
   }
 
-  /** Native-only support — true on Android/iOS, always false on web. */
-  isSupported(): boolean {
-    return this.platform.isNativePlatform();
-  }
-
-  /** Shows the generic "not available in browser" alert and returns false when running on web. */
-  private async ensureNative(): Promise<boolean> {
-    if (this.platform.isNativePlatform()) return true;
-
-    const alert = await this.alertController.create({
-      header: 'Not available in the browser',
-      message:
-        'Haptic feedback cannot be tested in the browser. Install the app on a mobile device to feel the real vibration.',
-      buttons: ['Got it'],
-    });
-    await alert.present();
-    return false;
+  /** Raw vibration for a fixed duration (ms) — closest thing to a "manual" haptic. */
+  async vibrate(durationMs: number): Promise<void> {
+    await Haptics.vibrate({ duration: durationMs });
   }
 }

@@ -1,73 +1,68 @@
 <app-shell activePage="haptics">
   <app-ui-header
     title="Haptics"
-    subtitle="Provide tactile feedback to improve the user experience."
+    subtitle="Trigger native feedback using the Capacitor Haptics plugin."
   />
 
-  <app-ui-banner
-    [title]="hapticsSupported() ? 'Haptics Supported' : 'Haptics Not Supported'"
-    [subtitle]="hapticsSupported() ? 'This device supports haptic feedback.' : 'This browser/device does not support vibration.'"
-    [bannerIcon]="hapticsSupported() ? 'shield-checkmark-outline' : 'shield-outline'"
-    [variant]="hapticsSupported() ? 'success' : 'disabled'"
-  />
+  @if (isBrowserEnv()) {
+  <section class="notice">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    @if (vibrationSupported()) {
+    <span
+      >You're in the browser: every action falls back to the same simple device
+      vibration — there's no real difference between impact and notification
+      styles here.</span
+    >
+    } @else {
+    <span
+      >Your browser doesn't support the Vibration API (common on desktop and iOS
+      Safari), so these actions won't produce any physical feedback.</span
+    >
+    }
+  </section>
+  }
 
-  <h3 class="section-title">Impact Feedback</h3>
-  <div class="feedback-grid">
-    @for (card of impactCards; track card.id) {
-    <div class="feedback-card">
-      <div class="feedback-card__icon feedback-card__icon-impact">
-        <ion-icon [name]="card.icon"></ion-icon>
-      </div>
-      <span class="feedback-card__title">{{ card.title }}</span>
+  <section class="actions">
+    <div class="info__header">
+      <ion-icon name="apps-outline"></ion-icon>
+      <h3>Quick Actions</h3>
+    </div>
+    <div class="actions__grid">
+      @for (action of quickActions; track action.key) {
+      <button
+        type="button"
+        class="actions__card"
+        [disabled]="isBusy()"
+        (click)="onAction(action.key)"
+      >
+        <span class="actions__icon" [style.color]="action.color">
+          <ion-icon [name]="action.icon"></ion-icon>
+        </span>
+        <span class="actions__label">{{ action.label }}</span>
+      </button>
+      }
+    </div>
+  </section>
 
-      <app-ui-button
-        text="TEST"
-        icon="pulse-outline"
-        size="small"
-        [disabled]="!hapticsSupported()"
-        (buttonClick)="trigger(card)"
-      />
+  @if (log().length) {
+  <section class="history">
+    <div class="info__header">
+      <ion-icon name="time-outline"></ion-icon>
+      <h3>Activity Log</h3>
+    </div>
+
+    @for (entry of log(); track entry.timestamp) {
+    <div class="history__row">
+      <span
+        class="history__dot"
+        [class]="'history__dot--' + entry.variant"
+      ></span>
+      <span class="history__label">{{ entry.message }}</span>
+      <span class="history__time"
+        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
+      >
     </div>
     }
-  </div>
-
-  <h3 class="section-title">Notification Feedback</h3>
-  <div class="feedback-grid">
-    @for (card of notificationCards; track card.id) {
-    <div class="feedback-card">
-      <div class="feedback-card__icon feedback-card__icon-{{ card.id }}">
-        <ion-icon [name]="card.icon"></ion-icon>
-      </div>
-      <span class="feedback-card__title">{{ card.title }}</span>
-
-      <app-ui-button
-        text="TEST"
-        icon="pulse-outline"
-        size="small"
-        [disabled]="!hapticsSupported()"
-        (buttonClick)="trigger(card)"
-      />
-    </div>
-    }
-  </div>
-
-  <h3 class="section-title">Selection Feedback</h3>
-  <div class="selection-row">
-    @for (card of selectionCards; track card.id; let last = $last) {
-    <div class="selection-item" [class.selection-item--divider]="!last">
-      <div class="selection-item__icon">
-        <ion-icon [name]="card.icon"></ion-icon>
-      </div>
-      <span class="selection-item__title">{{ card.title }}</span>
-
-      <app-ui-button
-        text="TEST"
-        icon="pulse-outline"
-        size="small"
-        [disabled]="!hapticsSupported()"
-        (buttonClick)="trigger(card)"
-      />
-    </div>
-    }
-  </div>
+  </section>
+  }
 </app-shell>
