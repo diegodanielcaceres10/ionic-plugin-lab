@@ -1,67 +1,80 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Clipboard } from '@capacitor/clipboard';
-import { AlertController } from '@ionic/angular';
 
-export type ClipboardCategory = 'text' | 'url' | 'image' | 'empty';
+export type ClipboardContentType =
+  | 'text/plain'
+  | 'image/png'
+  | 'image/jpeg'
+  | 'unknown'
+  | 'empty';
 
-export interface ClipboardSnapshot {
+export interface ClipboardReadResult {
   value: string;
-  rawType: string;
-  category: ClipboardCategory;
+  type: ClipboardContentType;
 }
 
-// 1x1 transparent PNG used as a placeholder for the "Copy Image" demo action.
-const DEMO_IMAGE_BASE64 =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
-
-const URL_PATTERN = /^(https?:\/\/|www\.)[^\s]+$/i;
+/**
+ * Small PNG (120×120) used as the sample image for the "Copy Image" feature.
+ * It's embedded here so the demo works offline/on-device without any asset
+ * fetching — the Clipboard plugin's write() expects a bare base64 string
+ * (no data-URI prefix), which is exactly what's stored here.
+ */
+export const SAMPLE_IMAGE_BASE64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5ZDbSAAAEb0lEQVR4nO2dSXLjMAxFaVcfqnO6OKdLbpVeMaVmNHDA8AH9t7YtEE+ARMpFPUoy/r6+v1e+//V6PKRiQSD0YFZl9hJZeqjArYReEUk4fKAoUo9Alw0ZHLrUIxBlQwUUVWwLkmiIQLKIbUEQ7RpAVrEtnqJdDnwXsS0eop/WB7yr3FJ8xm52Rt1Z7B5W1WxSwZT7G6ucqAum3GMscqPWJih2DK2WrVLBlDuOVs7EBVPuPBq5ExVMuetI51BMMOXKIZlLEcGUK49UTpcFU64eErldujVHlvv5Pvb5tw+dOCRYmUJNfxFJ7qjMXpCkz0qe+hKCXC2pRyDInpH8RyMQTazFtsdFED3C8BnhVb1eYo/wEj1axUMf9pCLJrbFQ/SI5O4PWstFF9tiLbpXsvk/OnqIJrcU3Ji7BFtWL2qierCMvdfJZZlbyY0sdg+rln3VqiFadDa5peCM6VSwRfWiJEIDi7FdOXKt4MxyK95jPBSsXb3eA7dEe6xnrlwq+E5yK15j3hWM8DAhE28f+nfVR87MHzZYnsm9SdWMyfvhxK85lGb1WshdTahkjAjr1GYVHKVKtr+1ErN35VbCPQ/eop3E+vuR//7zXzlrtWeN6rVOYs8YUMRu2zTEUuUoHom8OiaK3Bb1Fh39pmXv+O2YvOM646eC0ee+SEncxoIUV2XrUrVFZ1+xQpTbEuIajJhIxJj2UBMsVb1REonKsxTc6y/lzlOdhmjRZB4VwRLtmdUrAys4ORScnIfGDdZqi2Z7loMVnBxxwdlXr6IBV8Fsz7LACSayUHByKDg5FJwcCk4OBSeHgpNDwcmh4OTACeZSpyzigrnUiAVcBRNZnghvyGxhm5bh6/V4sIKTQ8HJUREscaPFNi0DKzg5z1IwXkW+B6t4nupUrYKl5sOUvEaIFo0oGTGmPVQFZ1/ViiD5RzDqdbiClMxtLEhxVUw3YZGs4s9334QeHR9RciXENbjFI6FXx0SVbLaVYeS9siJthNZeakNWcEW7Zc/+PlI1czPShuj7erUVvHvnHF1y5W7bCe/NhMwFl4LVwizwfMXO7jUYfU4cDYvp3ZEzl5us7Ctce3iN+VCwdhXfSbL2WM9cuU6T7iDZe4yngi2uxd4J0MRibCHeXZhRMsqYuiqUr5ftx3ve29JVwZbTJpQzfwY0uaWAtOiWiJJRYx6qTI9th9FbNsJ68xnDrddrb2k00V4VO3q5nLq2em4g7i0a6VlvD+HefDb7NjKp40Zj+u4Y6TUAWrKRpM7OZJamP0iSWyL9zeaKlWnq8vwWWXIGVtcglufBfHash0RuRRY6KFkeqZyKrWRRshySuRRdqqTkdaRzKL4WTcnzaORO5WEDJY+jlTN1EZxGnaNdDOqPC1nNx1jkxuR5MCX/xion5om/e8u2PtnN/9Fx52r2GLtrsu9SzZ4nNUQ1ZRWN0K3cA9iSRTSC2ApMIFuiikYSW4ELqAVdNqLULdDBtaDIRpe6JUyge1gJjyS0JWzgR6xKjyxzj397KbvQdaBbiAAAAABJRU5ErkJggg==';
 
 /**
- * Thin wrapper around @capacitor/clipboard.
- * Adds category detection (text/url/image) on top of the plugin's raw
- * read() result, since the plugin only reports a generic MIME type
- * and doesn't distinguish "plain text" from "a URL typed as text".
+ * Wraps @capacitor/clipboard so the page never talks to the plugin directly.
+ * Supports writing text, writing an image (base64), reading with type
+ * detection, and clearing the clipboard.
  */
 @Injectable({ providedIn: 'root' })
 export class ClipboardService {
-  private alertController = inject(AlertController);
-
+  /** Writes a plain-text string to the clipboard. */
   async writeText(value: string): Promise<void> {
     await Clipboard.write({ string: value });
   }
 
-  async writeUrl(url: string): Promise<void> {
-    await Clipboard.write({ url });
+  /**
+   * Writes a base64-encoded PNG to the clipboard.
+   * NOTE: image write is only supported on native (iOS/Android).
+   * On browser, @capacitor/clipboard falls back to no-op or throws —
+   * callers should wrap this in try/catch and handle accordingly.
+   */
+  async writeImage(base64: string): Promise<void> {
+    await Clipboard.write({ image: base64 });
   }
 
-  async writeDemoImage(): Promise<void> {
-    await Clipboard.write({ image: DEMO_IMAGE_BASE64 });
+  /** Clears the clipboard by writing an empty string. */
+  async clear(): Promise<void> {
+    await Clipboard.write({ string: '' });
   }
 
-  async read(): Promise<ClipboardSnapshot> {
+  /**
+   * Reads the current clipboard contents and normalises the type into
+   * one of the known ClipboardContentType values.
+   */
+  async read(): Promise<ClipboardReadResult> {
     const result = await Clipboard.read();
-    const value = result.value ?? '';
     return {
-      value,
-      rawType: result.type || 'unknown',
-      category: this.detectCategory(value, result.type),
+      value: result.value ?? '',
+      type: this.normaliseType(result.type, result.value),
     };
   }
 
-  private detectCategory(value: string, rawType: string): ClipboardCategory {
-    if (!value) return 'empty';
-    if (rawType?.startsWith('image') || value.startsWith('data:image'))
-      return 'image';
-    if (URL_PATTERN.test(value.trim())) return 'url';
-    return 'text';
-  }
-
-  async showErrorAlert(message: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Clipboard error',
-      message,
-      buttons: ['Got it'],
-    });
-    await alert.present();
+  private normaliseType(
+    raw: string | undefined,
+    value: string | undefined,
+  ): ClipboardContentType {
+    if (!value) {
+      return 'empty';
+    }
+    if (!raw) {
+      return 'text/plain';
+    }
+    const lower = raw.toLowerCase();
+    if (lower.includes('png')) return 'image/png';
+    if (lower.includes('jpeg') || lower.includes('jpg')) return 'image/jpeg';
+    if (lower.includes('text')) return 'text/plain';
+    return 'unknown';
   }
 }

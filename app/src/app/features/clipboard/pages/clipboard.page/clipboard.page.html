@@ -1,88 +1,140 @@
 <app-shell activePage="clipboard">
   <app-ui-header
     title="Clipboard"
-    subtitle="Copy and read content from the system clipboard."
+    subtitle="Read and write the clipboard using the Capacitor Clipboard plugin."
   />
 
-  <app-ui-banner
-    title="Clipboard Content"
-    [subtitle]="clipboard()?.category === 'image' ? 'Image data detected' : clipboard()?.value || 'Clipboard is empty'"
-    [bannerIcon]="categoryIcon()"
-    [badge]="categoryLabel()"
-  />
-
-  <section class="input-card">
-    <div class="input-card__header">
-      <ion-icon name="create-outline"></ion-icon>
-      <h3>Demo Input</h3>
+  <!-- 1 + 2. Write custom text & Read -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="copy-outline"></ion-icon>
+      <h3>Custom Text</h3>
     </div>
-    <ion-textarea
-      [(ngModel)]="inputText"
-      placeholder="Type something to copy, or paste clipboard content here…"
-      autoGrow="true"
+
+    <textarea
+      class="field"
       rows="3"
-    ></ion-textarea>
+      [value]="customText()"
+      (input)="updateCustomText($any($event.target).value)"
+    ></textarea>
+
+    <div class="panel__actions">
+      <app-ui-button
+        text="Copy"
+        icon="copy-outline"
+        [disabled]="!customText()"
+        (buttonClick)="copyCustomText()"
+      />
+      <app-ui-button
+        text="Paste"
+        icon="clipboard-outline"
+        variant="outline"
+        (buttonClick)="readClipboard()"
+      />
+    </div>
   </section>
 
+  <!-- 3. Read result with type detection -->
+  @if (readResult()) {
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Clipboard Content</h3>
+      <span class="panel__type-badge">{{ readResult()!.type }}</span>
+    </div>
+
+    @if (isImageType(readResult()!.type)) {
+    <img
+      class="panel__image-preview"
+      [src]="imageDataUri(readResult()!.value, readResult()!.type)"
+      alt="Clipboard image"
+    />
+    } @else if (readResult()!.type === 'empty') {
+    <p class="panel__hint">The clipboard is empty.</p>
+    } @else {
+    <p class="panel__content">{{ readResult()!.value }}</p>
+    }
+  </section>
+  }
+
+  <!-- 4. Copy image -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="image-outline"></ion-icon>
+      <h3>Copy Image</h3>
+    </div>
+
+    <div class="panel__image-row">
+      <img
+        class="panel__thumb"
+        [src]="'data:image/png;base64,' + 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5ZDbSAAAEb0lEQVR4nO2dSXLjMAxFaVcfqnO6OKdLbpVeMaVmNHDA8AH9t7YtEE+ARMpFPUoy/r6+v1e+//V6PKRiQSD0YFZl9hJZeqjArYReEUk4fKAoUo9Alw0ZHLrUIxBlQwUUVWwLkmiIQLKIbUEQ7RpAVrEtnqJdDnwXsS0eop/WB7yr3FJ8xm52Rt1Z7B5W1WxSwZT7G6ucqAum3GMscqPWJih2DK2WrVLBlDuOVs7EBVPuPBq5ExVMuetI51BMMOXKIZlLEcGUK49UTpcFU64eErldujVHlvv5Pvb5tw+dOCRYmUJNfxFJ7qjMXpCkz0qe+hKCXC2pRyDInpH8RyMQTazFtsdFED3C8BnhVb1eYo/wEj1axUMf9pCLJrbFQ/SI5O4PWstFF9tiLbpXsvk/OnqIJrcU3Ji7BFtWL2qierCMvdfJZZlbyY0sdg+rln3VqiFadDa5peCM6VSwRfWiJEIDi7FdOXKt4MxyK95jPBSsXb3eA7dEe6xnrlwq+E5yK15j3hWM8DAhE28f+nfVR87MHzZYnsm9SdWMyfvhxK85lGb1WshdTahkjAjr1GYVHKVKtr+1ErN35VbCPQ/eop3E+vuR//7zXzlrtWeN6rVOYs8YUMRu2zTEUuUoHom8OiaK3Bb1Fh39pmXv+O2YvOM646eC0ee+SEncxoIUV2XrUrVFZ1+xQpTbEuIajJhIxJj2UBMsVb1REonKsxTc6y/lzlOdhmjRZB4VwRLtmdUrAys4ORScnIfGDdZqi2Z7loMVnBxxwdlXr6IBV8Fsz7LACSayUHByKDg5FJwcCk4OBSeHgpNDwcmh4OTACeZSpyzigrnUiAVcBRNZnghvyGxhm5bh6/V4sIKTQ8HJUREscaPFNi0DKzg5z1IwXkW+B6t4nupUrYKl5sOUvEaIFo0oGTGmPVQFZ1/ViiD5RzDqdbiClMxtLEhxVUw3YZGs4s9334QeHR9RciXENbjFI6FXx0SVbLaVYeS9siJthNZeakNWcEW7Zc/+PlI1czPShuj7erUVvHvnHF1y5W7bCe/NhMwFl4LVwizwfMXO7jUYfU4cDYvp3ZEzl5us7Ctce3iN+VCwdhXfSbL2WM9cuU6T7iDZe4yngi2uxd4J0MRibCHeXZhRMsqYuiqUr5ftx3ve29JVwZbTJpQzfwY0uaWAtOiWiJJRYx6qTI9th9FbNsJ68xnDrddrb2k00V4VO3q5nLq2em4g7i0a6VlvD+HefDb7NjKp40Zj+u4Y6TUAWrKRpM7OZJamP0iSWyL9zeaKlWnq8vwWWXIGVtcglufBfHash0RuRRY6KFkeqZyKrWRRshySuRRdqqTkdaRzKL4WTcnzaORO5WEDJY+jlTN1EZxGnaNdDOqPC1nNx1jkxuR5MCX/xion5om/e8u2PtnN/9Fx52r2GLtrsu9SzZ4nNUQ1ZRWN0K3cA9iSRTSC2ApMIFuiikYSW4ELqAVdNqLULdDBtaDIRpe6JUyge1gJjyS0JWzgR6xKjyxzj397KbvQdaBbiAAAAABJRU5ErkJggg=='"
+        alt="Sample image to copy"
+      />
+      <div class="panel__image-meta">
+        <span>PNG · 120 × 120 px</span>
+        <span class="panel__hint">Native only (iOS / Android)</span>
+      </div>
+      <button class="icon-btn" (click)="copyImage()">
+        <ion-icon
+          [name]="isCopied('image') ? 'checkmark-outline' : 'copy-outline'"
+        ></ion-icon>
+      </button>
+    </div>
+  </section>
+
+  <!-- 5. Quick-copy chips -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="flash-outline"></ion-icon>
+      <h3>Quick Copy</h3>
+    </div>
+
+    <div class="chips">
+      @for (chip of quickCopies; track chip.label) {
+      <button
+        class="chip"
+        [class.chip--copied]="isCopied(chip.label)"
+        (click)="quickCopy(chip)"
+      >
+        <ion-icon
+          [name]="isCopied(chip.label) ? 'checkmark-outline' : 'copy-outline'"
+        ></ion-icon>
+        <span class="chip__label">{{ chip.label }}</span>
+        <span class="chip__value">{{ chip.value }}</span>
+      </button>
+      }
+    </div>
+  </section>
+
+  <!-- 6. Clear -->
   <section class="buttons">
     <app-ui-button
-      text="Clear Input"
+      text="Clear Clipboard"
       icon="trash-outline"
       variant="outline"
-      (buttonClick)="clearInput()"
-    />
-    <app-ui-button
-      text="Paste into Input"
-      icon="download-outline"
-      variant="outline"
-      (buttonClick)="pasteIntoInput()"
+      (buttonClick)="clearClipboard()"
     />
   </section>
 
-  <h3 class="section-title">Quick Actions</h3>
-  <div class="actions-grid">
-    @for (item of quickActions; track item.id) {
-    <button class="action-card" (click)="item.action()">
-      <div class="action-card__icon">
-        <ion-icon [name]="item.icon"></ion-icon>
+  <!-- 7. History -->
+  @if (history().length) {
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="time-outline"></ion-icon>
+      <h3>Action History</h3>
+    </div>
+
+    @for (entry of history(); track entry.timestamp) {
+    <div class="history__row">
+      <div class="history__text">
+        <span class="history__action">{{ entry.action }}</span>
+        <span class="history__detail">{{ entry.detail }}</span>
       </div>
-      <span class="action-card__title">{{ item.title }}</span>
-    </button>
+      <span class="history__time"
+        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
+      >
+    </div>
     }
-  </div>
-
-  @if (infoExpanded()) {
-  <section class="info">
-    <div class="info__header">
-      <ion-icon name="information-circle-outline"></ion-icon>
-      <h3>Clipboard Info</h3>
-    </div>
-
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon [name]="categoryIcon()"></ion-icon><span>Detected Type</span>
-      </div>
-      <span class="info__value">{{ categoryLabel() }}</span>
-    </div>
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon name="code-slash-outline"></ion-icon
-        ><span>Raw MIME Type</span>
-      </div>
-      <span class="info__value">{{ clipboard()?.rawType ?? '—' }}</span>
-    </div>
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon name="text-outline"></ion-icon><span>Character Count</span>
-      </div>
-      <span class="info__value">{{ characterCount() }}</span>
-    </div>
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon name="time-outline"></ion-icon><span>Last Read</span>
-      </div>
-      <span class="info__value">{{ timeLabel(lastReadAt()) }}</span>
-    </div>
   </section>
   }
 </app-shell>

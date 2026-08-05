@@ -1,229 +1,192 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
-import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
-import { IonTextarea, IonIcon } from '@ionic/angular/standalone';
-import { ToastController } from '@ionic/angular';
+import { IonIcon, AlertController } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  copyOutline,
+  clipboardOutline,
+  trashOutline,
+  flashOutline,
+  imageOutline,
+  checkmarkOutline,
+  timeOutline,
+  informationCircleOutline,
+} from 'ionicons/icons';
 import {
   ClipboardService,
-  ClipboardSnapshot,
+  ClipboardContentType,
+  ClipboardReadResult,
+  SAMPLE_IMAGE_BASE64,
 } from '../../data/clipboard.service';
 
-interface QuickAction {
-  id: string;
-  icon: string;
-  title: string;
-  action: () => Promise<void>;
+interface HistoryEntry {
+  action: string;
+  detail: string;
+  timestamp: number;
 }
 
-/**
- * Clipboard plugin demo page.
- * Reads and writes text/URL/image content via @capacitor/clipboard,
- * with a small text field to demo copy/paste round-trips.
- */
+interface QuickCopy {
+  label: string;
+  value: string;
+  icon: string;
+}
+
+const HISTORY_LIMIT = 6;
+
+const QUICK_COPIES: QuickCopy[] = [
+  { label: 'Email', value: 'hello@ionicpluginlab.dev', icon: 'copy-outline' },
+  { label: 'Referral Code', value: 'IONIC-2026', icon: 'copy-outline' },
+  { label: 'Phone', value: '+34 600 000 000', icon: 'copy-outline' },
+];
+
 @Component({
   selector: 'app-clipboard',
   standalone: true,
   imports: [
-    FormsModule,
     ShellComponent,
+    CommonModule,
     HeaderComponent,
-    BannerComponent,
     ButtonComponent,
-    IonTextarea,
     IonIcon,
   ],
   templateUrl: './clipboard.page.html',
   styleUrls: ['./clipboard.page.scss'],
 })
-export class ClipboardPage implements OnInit {
-  private clipboardService = inject(ClipboardService);
-  private toastCtrl = inject(ToastController);
+export class ClipboardPage {
+  // ── Write ─────────────────────────────────────────────────────────
+  customText = signal('Hello from Ionic Plugin Lab!');
+  copiedTarget = signal<string | null>(null);
+  private copiedResetHandle: ReturnType<typeof setTimeout> | null = null;
 
-  clipboard = signal<ClipboardSnapshot | null>(null);
-  lastReadAt = signal<number | null>(null);
-  inputText = signal('');
-  infoExpanded = signal(false);
+  // ── Read ──────────────────────────────────────────────────────────
+  readResult = signal<ClipboardReadResult | null>(null);
 
-  demoUrl = 'https://diegodanielcaceres10.github.io/nura/';
+  // ── History ───────────────────────────────────────────────────────
+  history = signal<HistoryEntry[]>([]);
 
-  categoryIcon = computed<string>(() => {
-    switch (this.clipboard()?.category) {
-      case 'url':
-        return 'link-outline';
-      case 'image':
-        return 'image-outline';
-      case 'text':
-        return 'document-text-outline';
-      default:
-        return 'clipboard-outline';
-    }
-  });
+  readonly quickCopies = QUICK_COPIES;
 
-  categoryLabel = computed<string>(() => {
-    switch (this.clipboard()?.category) {
-      case 'url':
-        return 'URL';
-      case 'image':
-        return 'Image';
-      case 'text':
-        return 'Text';
-      default:
-        return 'Empty';
-    }
-  });
-
-  quickActions: QuickAction[] = [
-    {
-      id: 'read',
-      icon: 'clipboard-outline',
-      title: 'Read Clipboard',
-      action: () => this.readClipboard(),
-    },
-    {
-      id: 'copy-text',
-      icon: 'document-text-outline',
-      title: 'Copy Text',
-      action: () => this.copyText(),
-    },
-    {
-      id: 'copy-url',
-      icon: 'link-outline',
-      title: 'Copy URL',
-      action: () => this.copyUrl(),
-    },
-    {
-      id: 'copy-image',
-      icon: 'image-outline',
-      title: 'Copy Image',
-      action: () => this.copyImage(),
-    },
-    {
-      id: 'clear',
-      icon: 'trash-outline',
-      title: 'Clear Input',
-      action: () => this.clearInput(),
-    },
-    {
-      id: 'paste',
-      icon: 'download-outline',
-      title: 'Paste into Input',
-      action: () => this.pasteIntoInput(),
-    },
-    {
-      id: 'refresh',
-      icon: 'refresh-outline',
-      title: 'Refresh Clipboard',
-      action: () => this.refreshClipboard(),
-    },
-    {
-      id: 'info',
-      icon: 'information-circle-outline',
-      title: 'Clipboard Info',
-      action: () => this.showInfo(),
-    },
-  ];
-
-  async ngOnInit() {
-    await this.refreshClipboard();
+  constructor(
+    private clipboardService: ClipboardService,
+    private alertController: AlertController,
+  ) {
+    addIcons({
+      'copy-outline': copyOutline,
+      'clipboard-outline': clipboardOutline,
+      'trash-outline': trashOutline,
+      'flash-outline': flashOutline,
+      'image-outline': imageOutline,
+      'checkmark-outline': checkmarkOutline,
+      'time-outline': timeOutline,
+      'information-circle-outline': informationCircleOutline,
+    });
   }
 
+  updateCustomText(value: string): void {
+    this.customText.set(value);
+  }
+
+  // ── 1. Copy custom text ───────────────────────────────────────────
+  async copyCustomText(): Promise<void> {
+    const text = this.customText();
+    if (!text) return;
+    await this.clipboardService.writeText(text);
+    this.flash('custom');
+    this.pushHistory('Copied text', this.truncate(text));
+  }
+
+  // ── 2. Read clipboard ─────────────────────────────────────────────
   async readClipboard(): Promise<void> {
-    await this.refreshClipboard();
-    await this.showToast('Clipboard content loaded');
-  }
-
-  async copyText(): Promise<void> {
-    const value = this.inputText().trim() || 'Hello from Ionic Plugin Lab!';
     try {
-      await this.clipboardService.writeText(value);
-      await this.showToast('Text copied to clipboard');
-      await this.refreshClipboard();
-    } catch (err: any) {
-      await this.clipboardService.showErrorAlert(this.describeError(err));
+      const result = await this.clipboardService.read();
+      this.readResult.set(result);
+      this.pushHistory(
+        'Read clipboard',
+        result.type === 'empty'
+          ? 'empty'
+          : `${result.type} · ${this.truncate(result.value)}`,
+      );
+    } catch {
+      await this.showGenericErrorAlert();
     }
   }
 
-  async copyUrl(): Promise<void> {
-    try {
-      await this.clipboardService.writeUrl(this.demoUrl);
-      await this.showToast('URL copied to clipboard');
-      await this.refreshClipboard();
-    } catch (err: any) {
-      await this.clipboardService.showErrorAlert(this.describeError(err));
-    }
-  }
-
+  // ── 4. Copy image ─────────────────────────────────────────────────
   async copyImage(): Promise<void> {
     try {
-      await this.clipboardService.writeDemoImage();
-      await this.showToast('Image copied to clipboard');
-      await this.refreshClipboard();
-    } catch (err: any) {
-      await this.clipboardService.showErrorAlert(
-        'This browser does not support copying images to the clipboard. Try the APK build instead.',
-      );
+      await this.clipboardService.writeImage(SAMPLE_IMAGE_BASE64);
+      this.flash('image');
+      this.pushHistory('Copied image', 'PNG · sample logo');
+    } catch {
+      await this.showImageNotSupportedAlert();
     }
   }
 
-  async clearInput(): Promise<void> {
-    await this.inputText.set('');
+  // ── 5. Quick-copy chips ───────────────────────────────────────────
+  async quickCopy(chip: QuickCopy): Promise<void> {
+    await this.clipboardService.writeText(chip.value);
+    this.flash(chip.label);
+    this.pushHistory(`Copied ${chip.label}`, chip.value);
   }
 
-  async pasteIntoInput(): Promise<void> {
-    try {
-      const snapshot = await this.clipboardService.read();
-      this.inputText.set(snapshot.value);
-      await this.showToast('Pasted from clipboard');
-    } catch (err: any) {
-      await this.clipboardService.showErrorAlert(this.describeError(err));
-    }
+  // ── 6. Clear clipboard ────────────────────────────────────────────
+  async clearClipboard(): Promise<void> {
+    await this.clipboardService.clear();
+    this.readResult.set(null);
+    this.flash('clear');
+    this.pushHistory('Cleared clipboard', '—');
   }
 
-  async refreshClipboard(): Promise<void> {
-    try {
-      const snapshot = await this.clipboardService.read();
-      this.clipboard.set(snapshot);
-      this.lastReadAt.set(Date.now());
-    } catch (err: any) {
-      await this.clipboardService.showErrorAlert(this.describeError(err));
-    }
+  // ── Helpers ───────────────────────────────────────────────────────
+  isCopied(target: string): boolean {
+    return this.copiedTarget() === target;
   }
 
-  async showInfo(): Promise<void> {
-    await this.refreshClipboard();
-    this.infoExpanded.set(true);
+  isImageType(type: ClipboardContentType): boolean {
+    return type === 'image/png' || type === 'image/jpeg';
   }
 
-  characterCount(): number {
-    return this.clipboard()?.value.length ?? 0;
+  imageDataUri(value: string, type: ClipboardContentType): string {
+    return `data:${type};base64,${value}`;
   }
 
-  timeLabel(timestamp: number | null): string {
-    if (!timestamp) return '—';
-    return new Date(timestamp).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
+  private flash(target: string): void {
+    this.copiedTarget.set(target);
+    if (this.copiedResetHandle) clearTimeout(this.copiedResetHandle);
+    this.copiedResetHandle = setTimeout(
+      () => this.copiedTarget.set(null),
+      1500,
+    );
+  }
+
+  private pushHistory(action: string, detail: string): void {
+    const entry: HistoryEntry = { action, detail, timestamp: Date.now() };
+    this.history.update((h) => [entry, ...h].slice(0, HISTORY_LIMIT));
+  }
+
+  private truncate(value: string, max = 32): string {
+    return value.length > max ? value.slice(0, max) + '…' : value;
+  }
+
+  private async showGenericErrorAlert(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Something went wrong',
+      message: "We couldn't read the clipboard. Try again.",
+      buttons: ['Close'],
     });
+    await alert.present();
   }
 
-  private describeError(err: any): string {
-    if (/denied|permission/i.test(err?.message ?? '')) {
-      return 'Clipboard permission was denied. Allow clipboard access for this site and try again.';
-    }
-    return 'Could not access the clipboard. Make sure the page is focused and try again.';
-  }
-
-  private async showToast(message: string): Promise<void> {
-    const toast = await this.toastCtrl.create({
-      message,
-      duration: 1500,
-      position: 'bottom',
+  private async showImageNotSupportedAlert(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Not supported here',
+      message:
+        'Copying images to the clipboard is only available on native iOS and Android. Try it on a device.',
+      buttons: ['Got it'],
     });
-    await toast.present();
+    await alert.present();
   }
 }
