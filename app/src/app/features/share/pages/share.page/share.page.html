@@ -1,0 +1,83 @@
+<app-shell activePage="share">
+  <app-ui-header
+    title="Share"
+    subtitle="Open the native share sheet using the Capacitor Share plugin."
+  />
+
+  @if (state() === 'checking') {
+  <section class="card__empty">
+    <ion-spinner name="circular" color="primary"></ion-spinner>
+    <p>Checking share support...</p>
+  </section>
+  } @else if (state() === 'unsupported') {
+  <section class="card__empty">
+    <div class="card__icon card__icon--warning">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+    </div>
+    <h2>Sharing isn't supported here</h2>
+    <p>
+      This browser doesn't implement the Web Share API. Try this on a mobile
+      device, or in a supported mobile browser.
+    </p>
+  </section>
+  } @else {
+
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="share-social-outline"></ion-icon>
+      <h3>Share Content</h3>
+    </div>
+
+    <label class="field-label" for="share-message">Message</label>
+    <textarea
+      id="share-message"
+      class="field"
+      rows="3"
+      [value]="message()"
+      (input)="updateMessage($any($event.target).value)"
+    ></textarea>
+
+    <label class="field-label" for="share-url">Link (optional)</label>
+    <input
+      id="share-url"
+      class="field"
+      type="url"
+      [value]="url()"
+      (input)="updateUrl($any($event.target).value)"
+    />
+  </section>
+
+  <section class="buttons">
+    <app-ui-button
+      text="Share"
+      icon="share-social-outline"
+      [disabled]="isSharing() || !message()"
+      (buttonClick)="share()"
+    />
+  </section>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Last Share Result</h3>
+    </div>
+
+    @if (lastResult()) {
+    <div class="info__row">
+      <span class="info__label">Activity Type</span>
+      <span class="info__value"
+        >{{ lastResult()!.activityType ?? 'Not reported' }}</span
+      >
+    </div>
+    <div class="info__row">
+      <span class="info__label">At</span>
+      <span class="info__value"
+        >{{ lastResult()!.timestamp | date: 'HH:mm:ss' }}</span
+      >
+    </div>
+    } @else {
+    <p class="info__empty">Share something to see the result here.</p>
+    }
+  </section>
+  }
+</app-shell>

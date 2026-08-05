@@ -123,7 +123,7 @@ ion-toolbar {
 
   &__grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
   }
 
@@ -157,10 +157,18 @@ ion-toolbar {
     }
 
     &-community {
-      background: rgba(56, 176, 155, 0.12);
+      background: rgba(var(--ion-color-success-rgb), 0.1);
 
       ion-icon {
-        color: #2ea08a;
+        color: var(--ion-color-success);
+      }
+    }
+
+    &-pending {
+      background: rgba(var(--ion-color-medium-rgb), 0.1);
+
+      ion-icon {
+        color: var(--ion-color-medium);
       }
     }
   }

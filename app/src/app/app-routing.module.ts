@@ -73,6 +73,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'share',
+    loadComponent: () =>
+      import('./features/share/pages/share.page/share.page').then(
+        (m) => m.SharePage,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },
