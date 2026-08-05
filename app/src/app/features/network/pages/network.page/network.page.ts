@@ -1,109 +1,179 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  signal,
-  computed,
-  inject,
-} from '@angular/core';
-import { TitleCasePipe } from '@angular/common';
-import { Capacitor } from '@capacitor/core';
-import { Device } from '@capacitor/device';
-import { ConnectionStatus } from '@capacitor/network';
+import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
-import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
 import { IonIcon } from '@ionic/angular/standalone';
-import { NetworkService } from '../../data/network.service';
+import { addIcons } from 'ionicons';
+import {
+  wifiOutline,
+  cellularOutline,
+  cloudOfflineOutline,
+  helpCircleOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  informationCircleOutline,
+  pulseOutline,
+  swapHorizontalOutline,
+  timeOutline,
+  refreshOutline,
+  playOutline,
+  stopOutline,
+} from 'ionicons/icons';
+import { NetworkService, NetworkInfo } from '../../data/network.service';
+import type { PluginListenerHandle } from '@capacitor/core';
 
-interface NetworkEvent {
-  status: ConnectionStatus;
+type BannerVariant = 'info' | 'success' | 'danger' | 'disabled';
+
+interface ChangeLogEntry {
+  info: NetworkInfo;
   timestamp: number;
 }
 
-/**
- * Network plugin demo page.
- * Reads the current connection status via @capacitor/device and reacts
- * live to networkStatusChange events, logging each transition.
- */
+/** How many entries to keep in the "Recent Changes" list. */
+const HISTORY_LIMIT = 5;
+
 @Component({
   selector: 'app-network',
   standalone: true,
   imports: [
-    TitleCasePipe,
     ShellComponent,
+    CommonModule,
     HeaderComponent,
-    BannerComponent,
     ButtonComponent,
+    BannerComponent,
     IonIcon,
   ],
   templateUrl: './network.page.html',
   styleUrls: ['./network.page.scss'],
 })
 export class NetworkPage implements OnInit, OnDestroy {
-  private networkService = inject(NetworkService);
+  status = signal<NetworkInfo | null>(null);
+  isListening = signal(false);
+  history = signal<ChangeLogEntry[]>([]);
 
-  status = signal<ConnectionStatus | null>(null);
-  events = signal<NetworkEvent[]>([]);
-  devicePlatform = signal<string>('');
+  private listenerHandle: PluginListenerHandle | null = null;
 
-  isConnected = computed(() => this.status()?.connected ?? false);
+  readonly variant = computed<BannerVariant>(() => {
+    const info = this.status();
+    if (!info) {
+      return 'disabled';
+    }
+    return info.connected ? 'success' : 'danger';
+  });
 
-  connectionIcon = computed(() => {
+  readonly bannerIcon = computed(() => {
+    const info = this.status();
+    if (!info) {
+      return 'help-circle-outline';
+    }
+    if (!info.connected) {
+      return 'cloud-offline-outline';
+    }
+    return info.connectionType === 'cellular'
+      ? 'cellular-outline'
+      : 'wifi-outline';
+  });
+
+  readonly bannerTitle = computed(() => {
+    const info = this.status();
+    if (!info) {
+      return 'Checking...';
+    }
+    return info.connected ? 'Connected' : 'Disconnected';
+  });
+
+  readonly connectionTypeLabel = computed(() => {
     switch (this.status()?.connectionType) {
       case 'wifi':
-        return 'wifi-outline';
+        return 'WiFi';
       case 'cellular':
-        return 'cellular-outline';
+        return 'Cellular';
       case 'none':
-        return 'cloud-offline-outline';
+        return 'No connection';
       default:
-        return 'help-outline';
+        return 'Unknown';
     }
   });
 
-  async ngOnInit() {
-    const info = await Device.getInfo();
-    this.devicePlatform.set(
-      `${info.operatingSystem} ${info.osVersion} (${Capacitor.getPlatform()})`,
-    );
+  readonly badgeLabel = computed(() => {
+    const info = this.status();
+    if (!info) {
+      return undefined;
+    }
+    return info.connected ? 'Online' : 'Offline';
+  });
 
-    const current = await this.networkService.getStatus();
-    this.status.set(current);
+  readonly badgeIcon = computed(() => {
+    const info = this.status();
+    if (!info) {
+      return undefined;
+    }
+    return info.connected ? 'checkmark-circle-outline' : 'close-circle-outline';
+  });
 
-    await this.networkService.watchStatus((newStatus) => {
-      this.status.set(newStatus);
-      this.pushEvent(newStatus);
+  constructor(private networkService: NetworkService) {
+    addIcons({
+      'wifi-outline': wifiOutline,
+      'cellular-outline': cellularOutline,
+      'cloud-offline-outline': cloudOfflineOutline,
+      'help-circle-outline': helpCircleOutline,
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'close-circle-outline': closeCircleOutline,
+      'information-circle-outline': informationCircleOutline,
+      'pulse-outline': pulseOutline,
+      'swap-horizontal-outline': swapHorizontalOutline,
+      'time-outline': timeOutline,
+      'refresh-outline': refreshOutline,
+      'play-outline': playOutline,
+      'stop-outline': stopOutline,
     });
   }
 
-  async refreshStatus() {
-    const current = await this.networkService.getStatus();
-    this.status.set(current);
-    this.pushEvent(current);
+  /** Reads the status once on load — no permission involved, so it's safe to do silently. */
+  async ngOnInit(): Promise<void> {
+    await this.refresh();
   }
 
-  private pushEvent(status: ConnectionStatus): void {
-    this.events.update((current) =>
-      [{ status, timestamp: Date.now() }, ...current].slice(0, 20),
+  /** Manually re-reads the current status (one-off check, no listener involved). */
+  async refresh(): Promise<void> {
+    const info = await this.networkService.getStatus();
+    this.status.set(info);
+    this.pushHistory(info);
+  }
+
+  /** Starts or stops the live connection listener, depending on the current state. */
+  async toggleListening(): Promise<void> {
+    if (this.isListening()) {
+      await this.stopListening();
+      return;
+    }
+    await this.startListening();
+  }
+
+  private async startListening(): Promise<void> {
+    this.listenerHandle = await this.networkService.listen((info) => {
+      this.status.set(info);
+      this.pushHistory(info);
+    });
+    this.isListening.set(true);
+  }
+
+  private async stopListening(): Promise<void> {
+    await this.listenerHandle?.remove();
+    this.listenerHandle = null;
+    this.isListening.set(false);
+  }
+
+  private pushHistory(info: NetworkInfo): void {
+    const entry: ChangeLogEntry = { info, timestamp: Date.now() };
+    this.history.update((entries) =>
+      [entry, ...entries].slice(0, HISTORY_LIMIT),
     );
   }
 
-  clearEvents(): void {
-    this.events.set([]);
-  }
-
-  timeLabel(timestamp: number): string {
-    return new Date(timestamp).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
-  }
-
-  async ngOnDestroy() {
-    await this.networkService.stopWatching();
+  ngOnDestroy(): void {
+    void this.listenerHandle?.remove();
   }
 }

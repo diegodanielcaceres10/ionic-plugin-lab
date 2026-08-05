@@ -1,91 +1,91 @@
 <app-shell activePage="network">
   <app-ui-header
     title="Network"
-    subtitle="Monitor network connectivity and status."
+    subtitle="Monitor connectivity using the Capacitor Network plugin."
   />
 
   <app-ui-banner
-    [title]="isConnected() ? 'Connected' : 'No Connection'"
-    [subtitle]="(status()?.connectionType ?? 'unknown') | titlecase"
-    [bannerIcon]="connectionIcon()"
-    [badgeIcon]="isConnected() ? 'checkmark-circle' : 'close-circle'"
-    [badge]="isConnected() ? 'Online' : 'Offline'"
-    [variant]="isConnected() ? 'success' : 'danger'"
+    class="banner-slot"
+    [title]="bannerTitle()"
+    [subtitle]="connectionTypeLabel()"
+    [bannerIcon]="bannerIcon()"
+    [variant]="variant()"
+    [badge]="badgeLabel()"
+    [badgeIcon]="badgeIcon()"
   />
 
-  <app-ui-button
-    text="Refresh Status"
-    icon="refresh-outline"
-    (buttonClick)="refreshStatus()"
-  />
+  <section class="buttons">
+    <app-ui-button
+      text="Refresh Status"
+      icon="refresh-outline"
+      variant="outline"
+      (buttonClick)="refresh()"
+    />
+    <app-ui-button
+      [text]="isListening() ? 'Stop Listening' : 'Listen for Changes'"
+      [icon]="isListening() ? 'stop-outline' : 'play-outline'"
+      [disabled]="false"
+      (buttonClick)="toggleListening()"
+    />
+  </section>
 
   <section class="info">
     <div class="info__header">
       <ion-icon name="information-circle-outline"></ion-icon>
-      <h3>Connection Information</h3>
+      <h3>Network Information</h3>
     </div>
 
     <div class="info__row">
       <div class="info__label">
-        <ion-icon name="link-outline"></ion-icon><span>Connected</span>
+        <ion-icon name="pulse-outline"></ion-icon>
+        <span>Connected</span>
       </div>
-      <span class="info__value">{{ isConnected() ? 'Yes' : 'No' }}</span>
+      <span class="info__value"
+        >{{ status() ? (status()!.connected ? 'Yes' : 'No') : '—' }}</span
+      >
     </div>
+
     <div class="info__row">
       <div class="info__label">
-        <ion-icon [name]="connectionIcon()"></ion-icon
-        ><span>Connection Type</span>
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <span>Connection Type</span>
       </div>
       <span class="info__value">{{ status()?.connectionType ?? '—' }}</span>
     </div>
+
     <div class="info__row">
       <div class="info__label">
-        <ion-icon name="hardware-chip-outline"></ion-icon><span>Platform</span>
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Listener</span>
       </div>
-      <span class="info__value">{{ devicePlatform() || '—' }}</span>
+      <span class="info__value"
+        >{{ isListening() ? 'Active' : 'Stopped' }}</span
+      >
     </div>
   </section>
 
-  <section class="events">
-    <div class="events__header">
-      <div class="events__title">
-        <ion-icon name="pulse-outline"></ion-icon>
-        <h3>Status Changes</h3>
-      </div>
-      <button class="events__clear" (click)="clearEvents()">
-        <ion-icon name="trash-outline"></ion-icon>
-        Clear
-      </button>
+  @if (history().length) {
+  <section class="history">
+    <div class="info__header">
+      <ion-icon name="time-outline"></ion-icon>
+      <h3>Recent Changes</h3>
     </div>
 
-    @if (events().length === 0) {
-    <p class="events__empty">
-      No changes logged yet — toggle Wi-Fi or airplane mode to see events here.
-    </p>
-    } @else {
-    <div class="events__list">
-      @for (event of events(); track event.timestamp) {
-      <div
-        class="event-item"
-        [class.event-item--offline]="!event.status.connected"
+    @for (entry of history(); track entry.timestamp) {
+    <div class="history__row">
+      <span
+        class="history__dot"
+        [class]="'history__dot--' + (entry.info.connected ? 'success' : 'danger')"
+      ></span>
+      <span class="history__label">
+        {{ entry.info.connected ? 'Connected' : 'Disconnected' }} · {{
+        entry.info.connectionType }}
+      </span>
+      <span class="history__time"
+        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
       >
-        <ion-icon
-          [name]="event.status.connected ? 'checkmark-circle' : 'close-circle'"
-        ></ion-icon>
-        <div class="event-item__body">
-          <div class="event-item__row">
-            <span class="event-item__label">
-              {{ event.status.connected ? 'Connected' : 'Disconnected' }} — {{
-              event.status.connectionType }}
-            </span>
-            <span class="event-item__time"
-              >{{ timeLabel(event.timestamp) }}</span
-            >
-          </div>
-        </div>
-      </div>
-      }
     </div>
     }
   </section>
+  }
 </app-shell>
