@@ -1,362 +1,189 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
-import { AlertController, ActionSheetController } from '@ionic/angular';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
+import { IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
 import {
-  Directory,
-  DirectoryOption,
+  createOutline,
+  eyeOutline,
+  addCircleOutline,
+  refreshOutline,
+  listOutline,
+  trashOutline,
+  readerOutline,
+  informationCircleOutline,
+  helpCircleOutline,
+  checkmarkCircleOutline,
+  documentTextOutline,
+  documentOutline,
+  folderOutline,
+  folderOpenOutline,
+  layersOutline,
+  timeOutline,
+} from 'ionicons/icons';
+import {
   FilesystemService,
+  FileEntryInfo,
+  DirectoryEntry,
 } from '../../data/filesystem.service';
 
-type LogStatus = 'success' | 'error';
+type BannerVariant = 'info' | 'success' | 'danger' | 'disabled';
+type LogVariant = 'success' | 'danger' | 'info';
 
 interface LogEntry {
-  status: LogStatus;
-  title: string;
   message: string;
+  variant: LogVariant;
   timestamp: number;
 }
 
-interface OperationCard {
-  id: string;
-  icon: string;
-  title: string;
-  method: string;
-  description: string;
-  action: () => Promise<void>;
-}
+/** How many entries to keep in the "Activity Log" list. */
+const LOG_LIMIT = 5;
 
-/**
- * Filesystem plugin demo page.
- * Exercises writeFile / readFile / deleteFile / mkdir / readdir / stat
- * against a user-selected Capacitor Directory, logging each result.
- */
 @Component({
   selector: 'app-filesystem',
   standalone: true,
-  imports: [ShellComponent, HeaderComponent, IonButton, IonIcon],
+  imports: [
+    ShellComponent,
+    CommonModule,
+    HeaderComponent,
+    ButtonComponent,
+    BannerComponent,
+    IonIcon,
+  ],
   templateUrl: './filesystem.page.html',
   styleUrls: ['./filesystem.page.scss'],
 })
-export class FilesystemPage {
-  private fsService = inject(FilesystemService);
-  private alertCtrl = inject(AlertController);
-  private actionSheetCtrl = inject(ActionSheetController);
+export class FilesystemPage implements OnInit {
+  isBusy = signal(false);
+  isBrowser = signal(false);
+  fileInfo = signal<FileEntryInfo | null>(null);
+  fileContent = signal<string | null>(null);
+  entries = signal<DirectoryEntry[]>([]);
+  log = signal<LogEntry[]>([]);
 
-  directoryOptions = this.fsService.directoryOptions;
-  selectedDirectory = signal<DirectoryOption>(
-    this.directoryOptions[this.fsService.isNativePlatform() ? 0 : 1],
+  readonly hasFile = computed(() => this.fileInfo() !== null);
+
+  readonly bannerVariant = computed<BannerVariant>(() =>
+    this.fileInfo() ? 'success' : 'disabled',
   );
-  logs = signal<LogEntry[]>([]);
 
-  operations: OperationCard[] = [
-    {
-      id: 'create',
-      icon: 'document-attach-outline',
-      title: 'Create File',
-      method: 'writeFile',
-      description: 'Create a new file with content',
-      action: () => this.createFile(),
-    },
-    {
-      id: 'read',
-      icon: 'book-outline',
-      title: 'Read File',
-      method: 'readFile',
-      description: 'Read content from a file',
-      action: () => this.readFile(),
-    },
-    {
-      id: 'overwrite',
-      icon: 'create-outline',
-      title: 'Overwrite File',
-      method: 'writeFile',
-      description: 'Replace file content by writing again',
-      action: () => this.overwriteFile(),
-    },
-    {
-      id: 'delete',
-      icon: 'trash-outline',
-      title: 'Delete File',
-      method: 'deleteFile',
-      description: 'Delete a file from the directory',
-      action: () => this.deleteFile(),
-    },
-    {
-      id: 'mkdir',
-      icon: 'folder-open-outline',
-      title: 'Create Folder',
-      method: 'mkdir',
-      description: 'Create a new directory',
-      action: () => this.createFolder(),
-    },
-    {
-      id: 'list',
-      icon: 'list-outline',
-      title: 'List Files',
-      method: 'readdir',
-      description: 'List all files and folders',
-      action: () => this.listFiles(),
-    },
-    {
-      id: 'stat',
-      icon: 'information-circle-outline',
-      title: 'File Info',
-      method: 'stat',
-      description: 'Get detailed information',
-      action: () => this.fileInfo(),
-    },
-  ];
+  readonly bannerIcon = computed(() =>
+    this.fileInfo() ? 'document-text-outline' : 'help-circle-outline',
+  );
 
-  async openDirectoryPicker(): Promise<void> {
-    const options = this.fsService.isNativePlatform()
-      ? this.directoryOptions
-      : this.directoryOptions.filter((o) =>
-          [Directory.Data, Directory.Cache].includes(o.value),
-        );
+  readonly bannerTitle = computed(() =>
+    this.fileInfo() ? 'File ready' : 'No file yet',
+  );
 
-    const sheet = await this.actionSheetCtrl.create({
-      header: 'Select a directory',
-      buttons: [
-        ...options.map((option) => ({
-          text: option.label,
-          handler: () => this.selectedDirectory.set(option),
-        })),
-        { text: 'Cancel', role: 'cancel' },
-      ],
+  readonly bannerSubtitle = computed(
+    () => this.fileInfo()?.path ?? 'Create the demo file to get started',
+  );
+
+  readonly badgeLabel = computed(() => this.fileInfo()?.sizeLabel);
+
+  readonly badgeIcon = computed(() =>
+    this.fileInfo() ? 'checkmark-circle-outline' : undefined,
+  );
+
+  constructor(private filesystemService: FilesystemService) {
+    addIcons({
+      'create-outline': createOutline,
+      'eye-outline': eyeOutline,
+      'add-circle-outline': addCircleOutline,
+      'refresh-outline': refreshOutline,
+      'list-outline': listOutline,
+      'trash-outline': trashOutline,
+      'reader-outline': readerOutline,
+      'information-circle-outline': informationCircleOutline,
+      'help-circle-outline': helpCircleOutline,
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'document-text-outline': documentTextOutline,
+      'document-outline': documentOutline,
+      'folder-outline': folderOutline,
+      'folder-open-outline': folderOpenOutline,
+      'layers-outline': layersOutline,
+      'time-outline': timeOutline,
     });
-    await sheet.present();
   }
 
-  private async createFile(): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Create File',
-      inputs: [
-        { name: 'filename', type: 'text', placeholder: 'example.txt' },
-        { name: 'content', type: 'textarea', placeholder: 'File content' },
-      ],
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        {
-          text: 'Create',
-          handler: async (data) => {
-            if (!data.filename) return false;
-            try {
-              await this.fsService.writeFile(
-                data.filename,
-                data.content ?? '',
-                this.selectedDirectory().value,
-              );
-              this.logSuccess(
-                'File created',
-                `${data.filename} was created successfully.`,
-              );
-            } catch (err) {
-              this.logError('Create failed', this.describeError(err));
-            }
-            return true;
-          },
-        },
-      ],
-    });
-    await alert.present();
+  /** Reads the current file status on load — no permission involved, safe to do silently. */
+  async ngOnInit(): Promise<void> {
+    this.isBrowser.set(this.filesystemService.isBrowser());
+    this.fileInfo.set(await this.filesystemService.getDemoFileInfo());
   }
 
-  private async readFile(): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Read File',
-      inputs: [{ name: 'filename', type: 'text', placeholder: 'example.txt' }],
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        {
-          text: 'Read',
-          handler: async (data) => {
-            if (!data.filename) return false;
-            try {
-              const content = await this.fsService.readFile(
-                data.filename,
-                this.selectedDirectory().value,
-              );
-              this.logSuccess(
-                'File read',
-                content.length > 120
-                  ? `${content.slice(0, 120)}…`
-                  : content || '(empty file)',
-              );
-            } catch (err) {
-              this.logError('Read failed', this.describeError(err));
-            }
-            return true;
-          },
-        },
-      ],
+  async writeFile(): Promise<void> {
+    await this.run(async () => {
+      const info = await this.filesystemService.writeDemoFile();
+      this.fileInfo.set(info);
+      this.pushLog('File created', 'success');
     });
-    await alert.present();
   }
 
-  private async overwriteFile(): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Overwrite File',
-      inputs: [
-        { name: 'filename', type: 'text', placeholder: 'example.txt' },
-        { name: 'content', type: 'textarea', placeholder: 'New content' },
-      ],
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        {
-          text: 'Overwrite',
-          handler: async (data) => {
-            if (!data.filename) return false;
-            try {
-              await this.fsService.writeFile(
-                data.filename,
-                data.content ?? '',
-                this.selectedDirectory().value,
-              );
-              this.logSuccess(
-                'File overwritten',
-                `${data.filename} content was replaced.`,
-              );
-            } catch (err) {
-              this.logError('Overwrite failed', this.describeError(err));
-            }
-            return true;
-          },
-        },
-      ],
+  async readFile(): Promise<void> {
+    await this.run(async () => {
+      const content = await this.filesystemService.readDemoFile();
+      this.fileContent.set(content);
+      this.pushLog(`File read (${content.length} chars)`, 'success');
     });
-    await alert.present();
   }
 
-  private async deleteFile(): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Delete File',
-      inputs: [{ name: 'filename', type: 'text', placeholder: 'example.txt' }],
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        {
-          text: 'Delete',
-          role: 'destructive',
-          handler: async (data) => {
-            if (!data.filename) return false;
-            try {
-              await this.fsService.deleteFile(
-                data.filename,
-                this.selectedDirectory().value,
-              );
-              this.logSuccess('File deleted', `${data.filename} was removed.`);
-            } catch (err) {
-              this.logError('Delete failed', this.describeError(err));
-            }
-            return true;
-          },
-        },
-      ],
+  async appendLine(): Promise<void> {
+    await this.run(async () => {
+      const info = await this.filesystemService.appendToDemoFile();
+      this.fileInfo.set(info);
+      this.pushLog('Line appended', 'success');
     });
-    await alert.present();
   }
 
-  private async createFolder(): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Create Folder',
-      inputs: [{ name: 'foldername', type: 'text', placeholder: 'my-folder' }],
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        {
-          text: 'Create',
-          handler: async (data) => {
-            if (!data.foldername) return false;
-            try {
-              await this.fsService.mkdir(
-                data.foldername,
-                this.selectedDirectory().value,
-              );
-              this.logSuccess(
-                'Folder created',
-                `${data.foldername} was created.`,
-              );
-            } catch (err) {
-              this.logError('Create folder failed', this.describeError(err));
-            }
-            return true;
-          },
-        },
-      ],
+  async refreshInfo(): Promise<void> {
+    await this.run(async () => {
+      const info = await this.filesystemService.getDemoFileInfo();
+      this.fileInfo.set(info);
+      this.pushLog(
+        info ? 'Info refreshed' : 'File no longer exists',
+        info ? 'success' : 'info',
+      );
     });
-    await alert.present();
   }
 
-  private async listFiles(): Promise<void> {
+  async listDirectory(): Promise<void> {
+    await this.run(async () => {
+      const entries = await this.filesystemService.listDemoDirectory();
+      this.entries.set(entries);
+      this.pushLog(
+        `Directory listed (${entries.length} item${entries.length === 1 ? '' : 's'})`,
+        'success',
+      );
+    });
+  }
+
+  async deleteFile(): Promise<void> {
+    await this.run(async () => {
+      await this.filesystemService.deleteDemoFile();
+      this.fileInfo.set(null);
+      this.fileContent.set(null);
+      this.pushLog('File deleted', 'danger');
+    });
+  }
+
+  /** Shared wrapper: toggles the busy state and turns unexpected failures into a log entry. */
+  private async run(action: () => Promise<void>): Promise<void> {
+    this.isBusy.set(true);
     try {
-      const files = await this.fsService.readdir(
-        this.selectedDirectory().value,
-      );
-      this.logSuccess(
-        'Directory listed',
-        files.length ? files.join(', ') : 'This directory is empty.',
-      );
-    } catch (err) {
-      this.logError('List failed', this.describeError(err));
+      await action();
+    } catch {
+      this.pushLog('Something went wrong', 'danger');
+    } finally {
+      this.isBusy.set(false);
     }
   }
 
-  private async fileInfo(): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'File Info',
-      inputs: [{ name: 'filename', type: 'text', placeholder: 'example.txt' }],
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        {
-          text: 'Get Info',
-          handler: async (data) => {
-            if (!data.filename) return false;
-            try {
-              const info = await this.fsService.stat(
-                data.filename,
-                this.selectedDirectory().value,
-              );
-              this.logSuccess(
-                'File info',
-                `Type: ${info.type} · Size: ${info.size} bytes · Modified: ${new Date(info.mtime).toLocaleString()}`,
-              );
-            } catch (err) {
-              this.logError('Stat failed', this.describeError(err));
-            }
-            return true;
-          },
-        },
-      ],
-    });
-    await alert.present();
-  }
-
-  clearLog(): void {
-    this.logs.set([]);
-  }
-
-  private logSuccess(title: string, message: string): void {
-    this.pushLog({ status: 'success', title, message, timestamp: Date.now() });
-  }
-
-  private logError(title: string, message: string): void {
-    this.pushLog({ status: 'error', title, message, timestamp: Date.now() });
-  }
-
-  private pushLog(entry: LogEntry): void {
-    this.logs.update((current) => [entry, ...current].slice(0, 20));
-  }
-
-  private describeError(err: any): string {
-    return err?.message ?? 'The operation could not be completed.';
-  }
-
-  timeLabel(timestamp: number): string {
-    return new Date(timestamp).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
+  private pushLog(message: string, variant: LogVariant): void {
+    const entry: LogEntry = { message, variant, timestamp: Date.now() };
+    this.log.update((entries) => [entry, ...entries].slice(0, LOG_LIMIT));
   }
 }

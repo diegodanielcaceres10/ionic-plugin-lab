@@ -1,89 +1,160 @@
 <app-shell activePage="filesystem">
   <app-ui-header
     title="Filesystem"
-    subtitle="Interact with the device file system. Create, read, update and manage files and directories."
+    subtitle="Read and write files using the Capacitor Filesystem plugin."
   />
 
-  <section class="directory-card">
-    <div class="directory-card__header">
-      <div class="directory-card__icon">
+  <app-ui-banner
+    class="banner-slot"
+    [title]="bannerTitle()"
+    [subtitle]="bannerSubtitle()"
+    [bannerIcon]="bannerIcon()"
+    [variant]="bannerVariant()"
+    [badge]="badgeLabel()"
+    [badgeIcon]="badgeIcon()"
+  />
+
+  @if (isBrowser()) {
+  <section class="notice">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span
+      >You're in the browser: files are stored in a simulated filesystem, not on
+      the real device disk.</span
+    >
+  </section>
+  }
+
+  <section class="buttons">
+    <app-ui-button
+      text="Write Demo File"
+      icon="create-outline"
+      [disabled]="isBusy()"
+      (buttonClick)="writeFile()"
+    />
+    <app-ui-button
+      text="Read File"
+      icon="eye-outline"
+      variant="outline"
+      [disabled]="isBusy() || !hasFile()"
+      (buttonClick)="readFile()"
+    />
+    <app-ui-button
+      text="Append Line"
+      icon="add-circle-outline"
+      variant="outline"
+      [disabled]="isBusy() || !hasFile()"
+      (buttonClick)="appendLine()"
+    />
+    <app-ui-button
+      text="Refresh Info"
+      icon="refresh-outline"
+      variant="outline"
+      [disabled]="isBusy() || !hasFile()"
+      (buttonClick)="refreshInfo()"
+    />
+    <app-ui-button
+      text="List Directory"
+      icon="list-outline"
+      variant="outline"
+      [disabled]="isBusy()"
+      (buttonClick)="listDirectory()"
+    />
+    <app-ui-button
+      text="Delete File"
+      icon="trash-outline"
+      variant="outline"
+      [disabled]="isBusy() || !hasFile()"
+      (buttonClick)="deleteFile()"
+    />
+  </section>
+
+  @if (fileContent()) {
+  <section class="content">
+    <div class="info__header">
+      <ion-icon name="reader-outline"></ion-icon>
+      <h3>File Content</h3>
+    </div>
+    <pre>{{ fileContent() }}</pre>
+  </section>
+  }
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>File Information</h3>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
         <ion-icon name="folder-outline"></ion-icon>
+        <span>Path</span>
       </div>
-      <div class="directory-card__text">
-        <span class="directory-card__title">Directory</span>
-        <span class="directory-card__subtitle"
-          >Select a directory to work with</span
-        >
-      </div>
+      <span class="info__value truncate">{{ fileInfo()?.path ?? '—' }}</span>
     </div>
 
-    <button class="directory-select" (click)="openDirectoryPicker()">
-      <ion-icon name="folder-outline"></ion-icon>
-      <div class="directory-select__text">
-        <span class="directory-select__label"
-          >{{ selectedDirectory().label }}</span
-        >
-        <span class="directory-select__path"
-          >{{ selectedDirectory().path }}</span
-        >
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="document-outline"></ion-icon>
+        <span>Size</span>
       </div>
-      <ion-icon name="chevron-down-outline"></ion-icon>
-    </button>
+      <span class="info__value">{{ fileInfo()?.sizeLabel ?? '—' }}</span>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="layers-outline"></ion-icon>
+        <span>Type</span>
+      </div>
+      <span class="info__value">{{ fileInfo()?.type ?? '—' }}</span>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Modified</span>
+      </div>
+      <span class="info__value">{{ fileInfo()?.modifiedLabel ?? '—' }}</span>
+    </div>
   </section>
 
-  <h3 class="section-title">Filesystem Operations</h3>
+  @if (entries().length) {
+  <section class="directory">
+    <div class="info__header">
+      <ion-icon name="folder-open-outline"></ion-icon>
+      <h3>Demo Directory</h3>
+    </div>
 
-  <div class="operations-grid">
-    @for (op of operations; track op.id) {
-    <button class="op-card" (click)="op.action()">
-      <div class="op-card__icon">
-        <ion-icon [name]="op.icon"></ion-icon>
-      </div>
-      <span class="op-card__title">{{ op.title }}</span>
-      <span class="op-card__method">{{ op.method }}</span>
-      <span class="op-card__description">{{ op.description }}</span>
-    </button>
+    @for (entry of entries(); track entry.name) {
+    <div class="directory__row">
+      <ion-icon
+        [name]="
+          entry.type === 'directory' ? 'folder-outline' : 'document-outline'
+        "
+      ></ion-icon>
+      <span class="directory__label">{{ entry.name }}</span>
+      <span class="directory__size">{{ entry.sizeLabel }}</span>
+    </div>
     }
-  </div>
-
-  <section class="activity">
-    <div class="activity__header">
+  </section>
+  } @if (log().length) {
+  <section class="history">
+    <div class="info__header">
       <ion-icon name="time-outline"></ion-icon>
-      <div class="activity__text">
-        <h3>Activity Log</h3>
-        <p>See the result of your operations</p>
-      </div>
+      <h3>Activity Log</h3>
     </div>
 
-    @if (logs().length === 0) {
-    <div class="activity__empty">
-      <ion-icon name="code-slash-outline"></ion-icon>
-      <div>
-        <strong>No operations performed yet.</strong>
-        <p>Use the actions above to start interacting with the file system.</p>
-      </div>
+    @for (entry of log(); track entry.timestamp) {
+    <div class="history__row">
+      <span
+        class="history__dot"
+        [class]="'history__dot--' + entry.variant"
+      ></span>
+      <span class="history__label">{{ entry.message }}</span>
+      <span class="history__time"
+        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
+      >
     </div>
-    } @else {
-    <div class="activity__list">
-      @for (log of logs(); track log.timestamp) {
-      <div class="log-item log-item--{{ log.status }}">
-        <ion-icon
-          [name]="log.status === 'success' ? 'checkmark-circle' : 'alert-circle'"
-        ></ion-icon>
-        <div class="log-item__body">
-          <div class="log-item__row">
-            <span class="log-item__title">{{ log.title }}</span>
-            <span class="log-item__time">{{ timeLabel(log.timestamp) }}</span>
-          </div>
-          <p class="log-item__message">{{ log.message }}</p>
-        </div>
-      </div>
-      }
-    </div>
-    <ion-button fill="clear" size="small" (click)="clearLog()">
-      <ion-icon slot="start" name="trash-outline"></ion-icon>
-      Clear log
-    </ion-button>
     }
   </section>
+  }
 </app-shell>

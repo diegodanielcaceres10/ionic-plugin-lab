@@ -1,97 +1,145 @@
-import { inject, Injectable } from '@angular/core';
-import {
-  Filesystem,
-  Directory,
-  Encoding,
-  FileInfo,
-} from '@capacitor/filesystem';
+import { Injectable } from '@angular/core';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { PlatformService } from '../../../core/platform/platform.service';
 
-export { Directory };
+const DEMO_DIR = 'demo';
+const DEMO_FILE_NAME = 'notes.txt';
+const DEMO_FILE_PATH = `${DEMO_DIR}/${DEMO_FILE_NAME}`;
 
-export interface DirectoryOption {
-  value: Directory;
-  label: string;
+export interface FileEntryInfo {
+  name: string;
   path: string;
+  size: number;
+  sizeLabel: string;
+  modifiedLabel: string;
+  type: 'file' | 'directory';
+}
+
+export interface DirectoryEntry {
+  name: string;
+  type: 'file' | 'directory';
+  sizeLabel: string;
 }
 
 /**
- * Thin wrapper around @capacitor/filesystem.
- * Centralizes encoding/path defaults so the page only deals with
- * plain strings (filename + content), not Capacitor's raw options.
+ * Wraps @capacitor/filesystem to demo its core operations against a single
+ * demo file (Directory.Data/demo/notes.txt). Directory.Data is app-private
+ * storage on both platforms, so none of this needs runtime permissions.
  */
 @Injectable({ providedIn: 'root' })
 export class FilesystemService {
-  private platformService = inject(PlatformService);
-
-  readonly directoryOptions: DirectoryOption[] = [
-    {
-      value: Directory.Documents,
-      label: 'Directory.Documents',
-      path: '/storage/emulated/0/Documents',
-    },
-    {
-      value: Directory.Data,
-      label: 'Directory.Data',
-      path: 'App private storage',
-    },
-    {
-      value: Directory.Cache,
-      label: 'Directory.Cache',
-      path: 'App cache (no permission needed)',
-    },
-    {
-      value: Directory.ExternalStorage,
-      label: 'Directory.ExternalStorage',
-      path: '/storage/emulated/0',
-    },
-  ];
+  constructor(private platformService: PlatformService) {}
 
   /**
-   * Returns true when running inside a native app (Android/iOS),
-   * false when running in the browser.
+   * True when running in the browser, where the plugin falls back to a
+   * simulated (IndexedDB-backed) store instead of the real device disk.
+   * Useful to show an informational note, not to block any action.
    */
-  isNativePlatform(): boolean {
-    return this.platformService.isNativePlatform();
+  isBrowser(): boolean {
+    return !this.platformService.isNativePlatform();
   }
 
-  async writeFile(
-    path: string,
-    data: string,
-    directory: Directory,
-  ): Promise<void> {
+  /** Creates (or overwrites) the demo file with a fresh timestamped line. */
+  async writeDemoFile(): Promise<FileEntryInfo> {
+    const content = `Entry created at ${new Date().toLocaleString()}\n`;
     await Filesystem.writeFile({
-      path,
-      data,
-      directory,
+      path: DEMO_FILE_PATH,
+      data: content,
+      directory: Directory.Data,
       encoding: Encoding.UTF8,
+      recursive: true,
     });
+    return this.requireInfo();
   }
 
-  async readFile(path: string, directory: Directory): Promise<string> {
+  /** Reads and returns the full text content of the demo file. */
+  async readDemoFile(): Promise<string> {
     const result = await Filesystem.readFile({
-      path,
-      directory,
+      path: DEMO_FILE_PATH,
+      directory: Directory.Data,
       encoding: Encoding.UTF8,
     });
     return result.data as string;
   }
 
-  async deleteFile(path: string, directory: Directory): Promise<void> {
-    await Filesystem.deleteFile({ path, directory });
+  /** Appends a new timestamped line, keeping whatever was already there. */
+  async appendToDemoFile(): Promise<FileEntryInfo> {
+    const line = `Entry appended at ${new Date().toLocaleString()}\n`;
+    await Filesystem.appendFile({
+      path: DEMO_FILE_PATH,
+      data: line,
+      directory: Directory.Data,
+      encoding: Encoding.UTF8,
+    });
+    return this.requireInfo();
   }
 
-  async mkdir(path: string, directory: Directory): Promise<void> {
-    await Filesystem.mkdir({ path, directory, recursive: true });
+  /** File metadata (size, type, modified date), or null if it doesn't exist yet. */
+  async getDemoFileInfo(): Promise<FileEntryInfo | null> {
+    try {
+      const stat = await Filesystem.stat({
+        path: DEMO_FILE_PATH,
+        directory: Directory.Data,
+      });
+      return {
+        name: DEMO_FILE_NAME,
+        path: DEMO_FILE_PATH,
+        size: stat.size,
+        sizeLabel: this.formatBytes(stat.size),
+        modifiedLabel: this.formatDate(stat.mtime),
+        type: stat.type === 'directory' ? 'directory' : 'file',
+      };
+    } catch {
+      return null;
+    }
   }
 
-  /** Lists file/folder names at the root of the given directory. */
-  async readdir(directory: Directory): Promise<string[]> {
-    const result = await Filesystem.readdir({ path: '', directory });
-    return result.files.map((f) => f.name);
+  /** Lists every entry inside the demo folder (empty array if it doesn't exist yet). */
+  async listDemoDirectory(): Promise<DirectoryEntry[]> {
+    try {
+      const result = await Filesystem.readdir({
+        path: DEMO_DIR,
+        directory: Directory.Data,
+      });
+      return result.files.map((f) => ({
+        name: f.name,
+        type: f.type === 'directory' ? 'directory' : 'file',
+        sizeLabel: this.formatBytes(f.size),
+      }));
+    } catch {
+      return [];
+    }
   }
 
-  async stat(path: string, directory: Directory): Promise<FileInfo> {
-    return Filesystem.stat({ path, directory });
+  /** Deletes the demo file. Safe to call even if it's already gone. */
+  async deleteDemoFile(): Promise<void> {
+    try {
+      await Filesystem.deleteFile({
+        path: DEMO_FILE_PATH,
+        directory: Directory.Data,
+      });
+    } catch {
+      // Already gone — nothing to do.
+    }
+  }
+
+  /** stat() right after a write/append should never miss — surfaces as a real error if it does. */
+  private async requireInfo(): Promise<FileEntryInfo> {
+    const info = await this.getDemoFileInfo();
+    if (!info) {
+      throw new Error('FILE_INFO_UNAVAILABLE');
+    }
+    return info;
+  }
+
+  private formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    return `${(kb / 1024).toFixed(1)} MB`;
+  }
+
+  private formatDate(ms: number): string {
+    return new Date(ms).toLocaleString();
   }
 }
