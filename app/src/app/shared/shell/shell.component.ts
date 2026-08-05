@@ -15,7 +15,8 @@ type AppTabsTypes =
   | 'filesystem'
   | 'network'
   | 'haptics'
-  | 'clipboard';
+  | 'clipboard'
+  | 'local-notifications';
 
 @Component({
   selector: 'app-shell',

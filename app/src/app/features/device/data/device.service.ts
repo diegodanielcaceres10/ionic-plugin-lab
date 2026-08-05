@@ -1,34 +1,61 @@
 import { Injectable } from '@angular/core';
-import { Device, DeviceInfo } from '@capacitor/device';
+import { Device, type DeviceInfo } from '@capacitor/device';
 
-/** Combined snapshot of everything the Device plugin demo page needs. */
+export interface BatterySnapshot {
+  level: number | null;
+  isCharging: boolean | null;
+  /** false when the Battery API isn't available (common on some browsers/OSs). */
+  supported: boolean;
+}
+
 export interface DeviceSnapshot {
-  id: string;
+  identifier: string;
   info: DeviceInfo;
   language: string;
   locale: string;
+  battery: BatterySnapshot;
 }
 
 /**
- * Thin wrapper around @capacitor/device.
- * Combines getId(), getInfo(), getLanguageCode() and getLanguageTag()
- * into a single snapshot, since the page always needs all four together.
+ * Wraps @capacitor/device so the page never talks to the plugin directly.
+ * Combines getId(), getInfo(), getLanguageCode(), getLanguageTag() and
+ * getBatteryInfo() into a single snapshot, since they're always read together.
  */
 @Injectable({ providedIn: 'root' })
 export class DeviceService {
   async getSnapshot(): Promise<DeviceSnapshot> {
-    const [id, info, language, locale] = await Promise.all([
+    const [id, info, languageCode, languageTag, battery] = await Promise.all([
       Device.getId(),
       Device.getInfo(),
       Device.getLanguageCode(),
       Device.getLanguageTag(),
+      this.getBatterySafely(),
     ]);
 
     return {
-      id: id.identifier,
+      identifier: id.identifier,
       info,
-      language: language.value,
-      locale: locale.value,
+      language: languageCode.value,
+      locale: languageTag.value,
+      battery,
     };
+  }
+
+  /**
+   * getBatteryInfo() isn't implemented on every browser (notably Firefox),
+   * so it's isolated here and never throws — the page just shows
+   * "not available" instead of failing the whole snapshot.
+   */
+  private async getBatterySafely(): Promise<BatterySnapshot> {
+    try {
+      const battery = await Device.getBatteryInfo();
+      return {
+        level: battery.batteryLevel ?? null,
+        isCharging: battery.isCharging ?? null,
+        supported: true,
+      };
+    } catch {
+      return { level: null, isCharging: null, supported: false };
+    }
   }
 }

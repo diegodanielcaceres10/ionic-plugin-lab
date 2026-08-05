@@ -86,8 +86,11 @@ export class HomePage {
     { icon: 'folder-outline', label: 'Filesystem', link: 'filesystem' },
     { icon: 'phone-portrait-outline', label: 'Haptics', link: 'haptics' },
     { icon: 'clipboard-outline', label: 'Clipboard', link: 'clipboard' },
-    { icon: 'notifications-outline', label: 'Local Notifications' },
-    { icon: 'paper-plane-outline', label: 'Push Notifications' },
+    {
+      icon: 'notifications-outline',
+      label: 'Local Notifications',
+      link: 'local-notifications',
+    },
     { icon: 'share-social-outline', label: 'Share' },
     { icon: 'stats-chart-outline', label: 'StatusBar' },
     { icon: 'water-outline', label: 'SplashScreen' },
@@ -103,6 +106,10 @@ export class HomePage {
     { icon: 'server-outline', label: 'SQLite' },
     { icon: 'locate-outline', label: 'Background Geolocation' },
     { icon: 'document-attach-outline', label: 'File Picker' },
+  ];
+
+  pendingPlugins: PluginItem[] = [
+    { icon: 'paper-plane-outline', label: 'Push Notifications' },
   ];
 
   constructor(private router: Router) {

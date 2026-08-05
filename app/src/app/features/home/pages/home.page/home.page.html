@@ -91,4 +91,22 @@
       </button>
     </div>
   </section>
+
+  <section class="plugins">
+    <div class="plugins__header">
+      <h2>Pending Plugins</h2>
+    </div>
+    <div class="plugins__grid">
+      <button
+        class="plugins__card"
+        *ngFor="let plugin of pendingPlugins"
+        (click)="onPluginTap(plugin)"
+      >
+        <div class="plugins__icon plugins__icon-pending">
+          <ion-icon [name]="plugin.icon"></ion-icon>
+        </div>
+        <span class="plugins__label">{{ plugin.label }}</span>
+      </button>
+    </div>
+  </section>
 </app-shell>

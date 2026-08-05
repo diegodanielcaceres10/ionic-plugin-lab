@@ -24,6 +24,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'network',
+    loadComponent: () =>
+      import('./features/network/pages/network.page/network.page').then(
+        (m) => m.NetworkPage,
+      ),
+  },
+  {
     path: 'device',
     loadComponent: () =>
       import('./features/device/pages/device.page/device.page').then(
@@ -45,13 +52,6 @@ const routes: Routes = [
       ),
   },
   {
-    path: 'network',
-    loadComponent: () =>
-      import('./features/network/pages/network.page/network.page').then(
-        (m) => m.NetworkPage,
-      ),
-  },
-  {
     path: 'haptics',
     loadComponent: () =>
       import('./features/haptics/pages/haptics.page/haptics.page').then(
@@ -63,6 +63,13 @@ const routes: Routes = [
     loadComponent: () =>
       import('./features/clipboard/pages/clipboard.page/clipboard.page').then(
         (m) => m.ClipboardPage,
+      ),
+  },
+  {
+    path: 'local-notifications',
+    loadComponent: () =>
+      import('./features/local-notifications/pages/local-notifications.page/local-notifications.page').then(
+        (m) => m.LocalNotificationsPage,
       ),
   },
   {

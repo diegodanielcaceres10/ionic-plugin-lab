@@ -36,7 +36,6 @@
     </application>
 
     <!-- Permissions -->
-
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Camera: required for CameraSource.Camera (opening the camera) -->
@@ -87,4 +86,21 @@
          This is a "normal" permission — Android grants it automatically at
          install time, no runtime prompt needed. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Local Notifications: required so the runtime permission prompt
+         actually works (Android 13+ / API 33+). Without this declared,
+         checkPermissions()/requestPermissions() will report the
+         notification as blocked even if the user would've allowed it. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Local Notifications: required to fire at the EXACT time you schedule
+         (Android 12+ / API 31+). Without it, the OS may delay the
+         notification within an inexact ~15 minute window instead — fine for
+         reminders, not fine for a "5 seconds from now" demo like this one. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- Local Notifications: OPTIONAL — only needed if you want notifications
+         scheduled before a device reboot to still fire afterwards. Safe to
+         skip for this demo since nothing is scheduled far in advance. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 </manifest>

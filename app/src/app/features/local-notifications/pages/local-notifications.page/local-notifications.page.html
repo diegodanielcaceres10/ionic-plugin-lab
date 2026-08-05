@@ -1,0 +1,109 @@
+<app-shell activePage="local-notifications">
+  <app-ui-header
+    title="Local Notifications"
+    subtitle="Schedule and manage notifications using the Capacitor Local Notifications plugin."
+  />
+
+  @if (state() === 'checking') {
+  <section class="card__empty">
+    <ion-spinner name="circular" color="primary"></ion-spinner>
+    <p>Checking permission...</p>
+  </section>
+  } @else if (state() === 'prompt') {
+  <section class="card__empty">
+    <div class="card__icon">
+      <ion-icon name="notifications-outline"></ion-icon>
+    </div>
+    <h2>Enable notifications</h2>
+    <p>We need permission to schedule and show local notifications.</p>
+  </section>
+  <section class="buttons">
+    <app-ui-button
+      text="Enable Notifications"
+      icon="notifications-outline"
+      (buttonClick)="requestPermission()"
+    />
+  </section>
+  } @else if (state() === 'denied') {
+  <section class="card__empty">
+    <div class="card__icon card__icon--warning">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+    </div>
+    <h2>Notifications permission denied</h2>
+    <p>Enable notifications from your device settings to try this demo.</p>
+  </section>
+  } @else {
+
+  <section class="buttons">
+    <app-ui-button
+      text="Schedule Notification (5s)"
+      icon="add-circle-outline"
+      [disabled]="isScheduling()"
+      (buttonClick)="scheduleNotification()"
+    />
+    <app-ui-button
+      text="Refresh Pending"
+      icon="refresh-outline"
+      variant="outline"
+      (buttonClick)="refreshPending()"
+    />
+  </section>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="hourglass-outline"></ion-icon>
+      <h3>Pending Notifications</h3>
+    </div>
+
+    @if (pending().length === 0) {
+    <p class="info__empty">No pending notifications. Schedule one above.</p>
+    } @else { @for (notification of pending(); track notification.id) {
+    <div class="pending__row">
+      <div class="pending__text">
+        <span class="pending__title">{{ notification.title }}</span>
+        <span class="pending__body">{{ notification.body }}</span>
+        @if (notification.scheduleAt) {
+        <span class="pending__time"
+          >{{ notification.scheduleAt | date: 'HH:mm:ss' }}</span
+        >
+        }
+      </div>
+      <button
+        class="pending__cancel"
+        (click)="cancelNotification(notification.id)"
+      >
+        <ion-icon name="trash-outline"></ion-icon>
+      </button>
+    </div>
+    } }
+  </section>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="hand-left-outline"></ion-icon>
+      <h3>Last Interaction</h3>
+    </div>
+
+    @if (lastAction()) {
+    <div class="info__row">
+      <span class="info__label">Notification ID</span>
+      <span class="info__value">{{ lastAction()!.id }}</span>
+    </div>
+    <div class="info__row">
+      <span class="info__label">Action</span>
+      <span class="info__value">{{ lastAction()!.actionId }}</span>
+    </div>
+    <div class="info__row">
+      <span class="info__label">At</span>
+      <span class="info__value"
+        >{{ lastAction()!.timestamp | date: 'HH:mm:ss' }}</span
+      >
+    </div>
+    } @else {
+    <p class="info__empty">
+      Tap a notification once it fires to see it logged here.
+    </p>
+    }
+  </section>
+  }
+</app-shell>

@@ -1,95 +1,156 @@
 <app-shell activePage="device">
   <app-ui-header
     title="Device"
-    subtitle="Get information about the current device."
+    subtitle="Read device details using the Capacitor Device plugin."
   />
 
-  <app-ui-banner
-    [title]="snapshot()?.info?.isVirtual ? 'Virtual Device' : 'Physical Device'"
-    [subtitle]="snapshot()?.info?.isVirtual ? 'You are running on a simulator or emulator.' : 'You are running on a real device.'"
-    bannerIcon="phone-portrait-outline"
-    badgeIcon="checkmark-circle"
-    [badge]="state() === 'obtained' ? snapshot()?.info?.isVirtual ? 'Virtual Device' : 'Real Device' : ''"
-  />
+  @if (state() === 'loading') {
+  <section class="loading">
+    <p>Loading device info...</p>
+  </section>
+  } @else if (state() === 'error') {
+  <section class="card__empty">
+    <div class="card__icon card__icon--warning">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+    </div>
+    <h2>Couldn't read device info</h2>
+    <p>Something went wrong reading the device data. Try again.</p>
+  </section>
+  <section class="buttons">
+    <app-ui-button text="Retry" icon="refresh-outline" (buttonClick)="load()" />
+  </section>
+  } @else {
 
   <section class="buttons">
     <app-ui-button
-      [text]="state() === 'loading' ? 'Refreshing...' : 'Refresh Info'"
+      text="Refresh"
       icon="refresh-outline"
-      [disabled]="state() === 'loading'"
-      (buttonClick)="loadInfo()"
-    />
-    <app-ui-button
-      text="Copy JSON"
-      icon="copy-outline"
       variant="outline"
-      [disabled]="state() !== 'obtained'"
-      (buttonClick)="copyJson()"
+      (buttonClick)="load()"
     />
   </section>
 
-  @if (state() === 'loading' && !snapshot()) {
-  <div class="card__spinner">
-    <ion-spinner name="circular" color="primary"></ion-spinner>
-  </div>
-  } @else if (state() === 'error') {
-  <div class="card__error">
-    <div class="card__icon">
-      <ion-icon name="alert-circle-outline"></ion-icon>
-    </div>
-    <h2>{{ errorMessage() }}</h2>
-  </div>
-  } @if (snapshot(); as s) {
-  <section class="info">
-    <div class="info__header">
-      <ion-icon name="information-circle-outline"></ion-icon>
-      <h3>Device Information</h3>
-    </div>
-
-    @for (row of infoRows(); track row.label) {
-    <div class="info__row">
-      <div class="info__label">
-        <ion-icon [name]="row.icon"></ion-icon>
-        <span>{{ row.label }}</span>
-      </div>
-      <div class="info__value-group">
-        <span class="info__value">{{ row.value }}</span>
-        <button class="info__copy" (click)="copyValue(row.value)">
-          <ion-icon name="copy-outline"></ion-icon>
-        </button>
-      </div>
-    </div>
-    }
-  </section>
-
-  <section class="identifier">
-    <div class="identifier__header">
+  <section class="panel">
+    <div class="panel__header">
       <ion-icon name="finger-print-outline"></ion-icon>
       <h3>Device Identifier</h3>
     </div>
-    <div class="identifier__box">
-      <span class="identifier__value">{{ s.id }}</span>
-      <button class="identifier__copy" (click)="copyValue(s.id)">
-        <ion-icon name="copy-outline"></ion-icon>
-      </button>
-    </div>
-    <p class="identifier__hint">
+
+    <button class="identifier" (click)="copyIdentifier()">
+      <span class="identifier__value">{{ snapshot()?.identifier }}</span>
+      <ion-icon
+        [name]="copied() === 'identifier' ? 'checkmark-outline' : 'copy-outline'"
+      ></ion-icon>
+    </button>
+
+    <p class="panel__hint">
       This identifier is unique to this installation of the app.
     </p>
   </section>
 
-  <section class="json">
-    <div class="json__header">
-      <div class="json__title">
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="hardware-chip-outline"></ion-icon>
+      <h3>Device Info</h3>
+    </div>
+
+    <div class="info__row">
+      <span class="info__label">Platform</span>
+      <span class="info__value">{{ snapshot()?.info?.platform ?? '—' }}</span>
+    </div>
+    <div class="info__row">
+      <span class="info__label">Operating System</span>
+      <span class="info__value"
+        >{{ snapshot()?.info?.operatingSystem ?? '—' }}</span
+      >
+    </div>
+    <div class="info__row">
+      <span class="info__label">OS Version</span>
+      <span class="info__value">{{ snapshot()?.info?.osVersion ?? '—' }}</span>
+    </div>
+    <div class="info__row">
+      <span class="info__label">Manufacturer</span>
+      <span class="info__value"
+        >{{ snapshot()?.info?.manufacturer ?? '—' }}</span
+      >
+    </div>
+    <div class="info__row">
+      <span class="info__label">Model</span>
+      <span class="info__value">{{ snapshot()?.info?.model ?? '—' }}</span>
+    </div>
+    <div class="info__row">
+      <span class="info__label">WebView Version</span>
+      <span class="info__value"
+        >{{ snapshot()?.info?.webViewVersion ?? '—' }}</span
+      >
+    </div>
+    <div class="info__row">
+      <span class="info__label">Virtual Device</span>
+      <span class="info__value"
+        >{{ snapshot()?.info?.isVirtual ? 'Yes' : 'No' }}</span
+      >
+    </div>
+  </section>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="language-outline"></ion-icon>
+      <h3>Language &amp; Locale</h3>
+    </div>
+
+    <div class="info__row">
+      <span class="info__label">Language</span>
+      <span class="info__value">{{ snapshot()?.language ?? '—' }}</span>
+    </div>
+    <div class="info__row">
+      <span class="info__label">Locale</span>
+      <span class="info__value">{{ snapshot()?.locale ?? '—' }}</span>
+    </div>
+  </section>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon
+        [name]="snapshot()?.battery?.isCharging ? 'battery-charging-outline' : 'battery-half-outline'"
+      ></ion-icon>
+      <h3>Battery</h3>
+    </div>
+
+    @if (snapshot()?.battery?.supported) {
+    <div class="info__row">
+      <span class="info__label">Level</span>
+      <span class="info__value"
+        >{{ (snapshot()!.battery.level! * 100).toFixed(0) }}%</span
+      >
+    </div>
+    <div class="info__row">
+      <span class="info__label">Charging</span>
+      <span class="info__value"
+        >{{ snapshot()?.battery?.isCharging ? 'Yes' : 'No' }}</span
+      >
+    </div>
+    } @else {
+    <p class="panel__hint">
+      Battery info isn't available on this device/browser.
+    </p>
+    }
+  </section>
+
+  <section class="panel">
+    <div class="panel__header panel__header--spread">
+      <div class="panel__header-title">
         <ion-icon name="code-slash-outline"></ion-icon>
         <h3>Raw Response (JSON)</h3>
       </div>
-      <button class="json__copy-link" (click)="copyJson()">
-        <ion-icon name="copy-outline"></ion-icon>
-        Copy JSON
+      <button class="panel__copy" (click)="copyJson()">
+        <ion-icon
+          [name]="copied() === 'json' ? 'checkmark-outline' : 'copy-outline'"
+        ></ion-icon>
+        {{ copied() === 'json' ? 'Copied' : 'Copy JSON' }}
       </button>
     </div>
-    <pre class="json__block">{{ rawJson() }}</pre>
+
+    <pre class="panel__json">{{ rawJson() }}</pre>
   </section>
   }
 </app-shell>
