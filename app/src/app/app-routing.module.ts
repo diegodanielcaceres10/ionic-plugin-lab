@@ -94,6 +94,11 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'nfc',
+    loadComponent: () =>
+      import('./features/nfc/pages/nfc.page/nfc.page').then((m) => m.NfcPage),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },

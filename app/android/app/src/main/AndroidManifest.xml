@@ -110,4 +110,14 @@
          scheduled before a device reboot to still fire afterwards. Safe to
          skip for this demo since nothing is scheduled far in advance. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- NFC: required to communicate with NFC tags -->
+    <uses-permission android:name="android.permission.NFC" />
+
+    <!-- Declares NFC as optional hardware, consistent with how you already
+        handle camera/GPS — required="false" allows install on devices/
+        emulators without an NFC radio -->
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="false" />
 </manifest>

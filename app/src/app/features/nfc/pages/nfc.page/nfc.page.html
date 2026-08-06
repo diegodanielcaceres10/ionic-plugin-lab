@@ -1,0 +1,95 @@
+<app-shell activePage="nfc">
+  <app-ui-header
+    title="NFC"
+    subtitle="Read and write NFC tags using the Capacitor NFC plugin."
+  />
+
+  <section class="card">
+    @if (state() === 'scanning') {
+    <div class="card__spinner">
+      <ion-spinner name="circular" color="primary"></ion-spinner>
+      <p>Hold a tag near the top of your device</p>
+    </div>
+    } @else if (state() === 'read') {
+    <div class="card__result">
+      <span class="card__badge">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        Tag detected
+      </span>
+      <p class="card__value">
+        {{ tag()?.text ?? 'No text record found on this tag' }}
+      </p>
+    </div>
+    } @else {
+    <div class="card__empty">
+      <div class="card__icon">
+        <ion-icon name="radio-outline"></ion-icon>
+      </div>
+      <h2>No tag scanned yet</h2>
+      <p>Tap the button below, then hold an NFC tag near your device.</p>
+    </div>
+    }
+  </section>
+
+  <section class="buttons">
+    <app-ui-button
+      text="Scan Tag"
+      icon="radio-outline"
+      [disabled]="state() === 'scanning'"
+      (buttonClick)="scanTag()"
+    />
+    <app-ui-button
+      text="Write Demo Text"
+      icon="create-outline"
+      variant="outline"
+      [disabled]="state() === 'scanning'"
+      (buttonClick)="writeDemoTag()"
+    />
+  </section>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Tag Information</h3>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="hardware-chip-outline"></ion-icon>
+        <span>Tag Type</span>
+      </div>
+      <span class="info__value">{{ tag()?.tagType ?? '—' }}</span>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>Writable</span>
+      </div>
+      <span class="info__value"
+        >{{ tag() ? (tag()!.isWritable ? 'Yes' : 'No') : '—' }}</span
+      >
+    </div>
+
+    <div
+      class="info__row"
+      *ngIf="state() === 'read' && (tag()?.techTypes?.length ?? 0) > 0"
+    >
+      <div class="info__label">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <span>Technologies</span>
+      </div>
+      <span class="info__value truncate"
+        >{{ tag()?.techTypes?.join(', ') }}</span
+      >
+    </div>
+
+    <div class="info__row" *ngIf="state() === 'read'">
+      <div class="info__label">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Scanned</span>
+      </div>
+      <span class="info__value">{{ tag()?.scannedAt ?? '—' }}</span>
+    </div>
+  </section>
+</app-shell>

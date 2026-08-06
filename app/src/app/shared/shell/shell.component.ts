@@ -19,7 +19,8 @@ type AppTabsTypes =
   | 'browser'
   | 'share'
   | 'local-notifications'
-  | 'clipboard';
+  | 'clipboard'
+  | 'nfc';
 
 @Component({
   selector: 'app-shell',
