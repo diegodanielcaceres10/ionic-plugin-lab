@@ -18,7 +18,6 @@ import {
   globeOutline,
   folderOutline,
   optionsOutline,
-  phonePortraitOutline as hapticsOutline,
   clipboardOutline,
   notificationsOutline,
   paperPlaneOutline,
@@ -37,6 +36,27 @@ import {
   homeOutline,
   gridOutline,
   starOutline,
+  earthOutline,
+  moveOutline,
+  textOutline,
+  swapVerticalOutline,
+  eyeOutline,
+  fileTrayStackedOutline,
+  layersOutline,
+  listOutline,
+  chatboxEllipsesOutline,
+  chatbubbleOutline,
+  keypadOutline,
+  syncOutline,
+  eyeOffOutline,
+  volumeHighOutline,
+  openOutline,
+  cloudDownloadOutline,
+  rocketOutline,
+  terminalOutline,
+  hardwareChipOutline,
+  peopleOutline,
+  calendarOutline,
 } from 'ionicons/icons';
 
 interface StatItem {
@@ -52,6 +72,11 @@ interface PluginItem {
   link?: string;
 }
 
+interface PluginCategory {
+  label: string;
+  plugins: PluginItem[];
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -61,7 +86,7 @@ interface PluginItem {
 })
 export class HomePage {
   stats: StatItem[] = [
-    { icon: 'cube-outline', value: 21, label: 'Plugins', color: 'primary' },
+    { icon: 'cube-outline', value: 36, label: 'Plugins', color: 'primary' },
     {
       icon: 'checkmark-circle-outline',
       value: 0,
@@ -77,39 +102,107 @@ export class HomePage {
     { icon: 'time-outline', value: 0, label: 'Recent', color: 'warning' },
   ];
 
-  officialPlugins: PluginItem[] = [
-    { icon: 'camera-outline', label: 'Camera', link: 'camera' },
-    { icon: 'location-outline', label: 'Geolocation', link: 'geolocation' },
-    { icon: 'wifi-outline', label: 'Network', link: 'network' },
+  pluginCategories: PluginCategory[] = [
     {
-      icon: 'notifications-outline',
-      label: 'Local Notifications',
-      link: 'local-notifications',
+      label: 'Media & Scanning',
+      plugins: [
+        { icon: 'camera-outline', label: 'Camera', link: 'camera' },
+        { icon: 'barcode-outline', label: 'Barcode Scanner' },
+      ],
     },
-    { icon: 'phone-portrait-outline', label: 'Haptics', link: 'haptics' },
-    { icon: 'globe-outline', label: 'Browser', link: 'browser' },
-    { icon: 'clipboard-outline', label: 'Clipboard', link: 'clipboard' },
-    { icon: 'share-social-outline', label: 'Share', link: 'share' },
-    { icon: 'folder-outline', label: 'Filesystem', link: 'filesystem' },
-    { icon: 'phone-portrait-outline', label: 'Device', link: 'device' },
-    { icon: 'stats-chart-outline', label: 'StatusBar' },
-    { icon: 'water-outline', label: 'SplashScreen' },
-    { icon: 'options-outline', label: 'Preferences' },
-    { icon: 'apps-outline', label: 'App' },
-  ];
-
-  communityPlugins: PluginItem[] = [
-    { icon: 'barcode-outline', label: 'Barcode Scanner' },
-    { icon: 'radio-outline', label: 'NFC' },
-    { icon: 'bluetooth-outline', label: 'Bluetooth LE' },
-    { icon: 'finger-print-outline', label: 'Biometrics' },
-    { icon: 'server-outline', label: 'SQLite' },
-    { icon: 'locate-outline', label: 'Background Geolocation' },
-    { icon: 'document-attach-outline', label: 'File Picker' },
-  ];
-
-  pendingPlugins: PluginItem[] = [
-    { icon: 'paper-plane-outline', label: 'Push Notifications' },
+    {
+      label: 'Location & Maps',
+      plugins: [
+        { icon: 'location-outline', label: 'Geolocation', link: 'geolocation' },
+        { icon: 'locate-outline', label: 'Background Geolocation' },
+        { icon: 'earth-outline', label: 'Google Maps' },
+      ],
+    },
+    {
+      label: 'Device & Sensors',
+      plugins: [
+        { icon: 'phone-portrait-outline', label: 'Device', link: 'device' },
+        { icon: 'phone-portrait-outline', label: 'Haptics', link: 'haptics' },
+        { icon: 'wifi-outline', label: 'Network', link: 'network' },
+        { icon: 'move-outline', label: 'Motion' },
+        { icon: 'text-outline', label: 'Text Zoom' },
+      ],
+    },
+    {
+      label: 'Storage & Files',
+      plugins: [
+        { icon: 'options-outline', label: 'Preferences' },
+        { icon: 'folder-outline', label: 'Filesystem', link: 'filesystem' },
+        { icon: 'server-outline', label: 'SQLite' },
+        { icon: 'document-attach-outline', label: 'File Picker' },
+        { icon: 'swap-vertical-outline', label: 'File Transfer' },
+        { icon: 'eye-outline', label: 'File Viewer' },
+        { icon: 'file-tray-stacked-outline', label: 'Cookies' },
+      ],
+    },
+    {
+      label: 'UI & System Bars',
+      plugins: [
+        { icon: 'stats-chart-outline', label: 'StatusBar', link: 'status-bar' },
+        { icon: 'layers-outline', label: 'System Bars' },
+        { icon: 'water-outline', label: 'SplashScreen' },
+        { icon: 'list-outline', label: 'Action Sheet' },
+        { icon: 'chatbox-ellipses-outline', label: 'Dialog' },
+        { icon: 'chatbubble-outline', label: 'Toast' },
+        { icon: 'keypad-outline', label: 'Keyboard' },
+        { icon: 'sync-outline', label: 'Screen Orientation' },
+        { icon: 'eye-off-outline', label: 'Privacy Screen' },
+        { icon: 'volume-high-outline', label: 'Screen Reader' },
+      ],
+    },
+    {
+      label: 'Web & Connectivity',
+      plugins: [
+        { icon: 'globe-outline', label: 'Browser', link: 'browser' },
+        { icon: 'open-outline', label: 'InAppBrowser' },
+        { icon: 'cloud-download-outline', label: 'Http' },
+        { icon: 'rocket-outline', label: 'App Launcher' },
+      ],
+    },
+    {
+      label: 'Notifications',
+      plugins: [
+        {
+          icon: 'notifications-outline',
+          label: 'Local Notifications',
+          link: 'local-notifications',
+        },
+        { icon: 'paper-plane-outline', label: 'Push Notifications' },
+      ],
+    },
+    {
+      label: 'Sharing & Clipboard',
+      plugins: [
+        { icon: 'share-social-outline', label: 'Share', link: 'share' },
+        { icon: 'clipboard-outline', label: 'Clipboard', link: 'clipboard' },
+      ],
+    },
+    {
+      label: 'Wireless & Security',
+      plugins: [
+        { icon: 'radio-outline', label: 'NFC' },
+        { icon: 'bluetooth-outline', label: 'Bluetooth LE' },
+        { icon: 'finger-print-outline', label: 'Biometrics' },
+      ],
+    },
+    {
+      label: 'App Core',
+      plugins: [{ icon: 'apps-outline', label: 'App' }],
+    },
+    {
+      label: 'Experimental',
+      plugins: [
+        { icon: 'terminal-outline', label: 'Background Runner' },
+        { icon: 'hardware-chip-outline', label: 'Local LLM' },
+        { icon: 'people-outline', label: 'Contacts' },
+        { icon: 'calendar-outline', label: 'Calendar' },
+      ],
+    },
   ];
 
   constructor(private router: Router) {
@@ -145,6 +238,27 @@ export class HomePage {
       'home-outline': homeOutline,
       'grid-outline': gridOutline,
       'star-outline': starOutline,
+      'earth-outline': earthOutline,
+      'move-outline': moveOutline,
+      'text-outline': textOutline,
+      'swap-vertical-outline': swapVerticalOutline,
+      'eye-outline': eyeOutline,
+      'file-tray-stacked-outline': fileTrayStackedOutline,
+      'layers-outline': layersOutline,
+      'list-outline': listOutline,
+      'chatbox-ellipses-outline': chatboxEllipsesOutline,
+      'chatbubble-outline': chatbubbleOutline,
+      'keypad-outline': keypadOutline,
+      'sync-outline': syncOutline,
+      'eye-off-outline': eyeOffOutline,
+      'volume-high-outline': volumeHighOutline,
+      'open-outline': openOutline,
+      'cloud-download-outline': cloudDownloadOutline,
+      'rocket-outline': rocketOutline,
+      'terminal-outline': terminalOutline,
+      'hardware-chip-outline': hardwareChipOutline,
+      'people-outline': peopleOutline,
+      'calendar-outline': calendarOutline,
     });
   }
 

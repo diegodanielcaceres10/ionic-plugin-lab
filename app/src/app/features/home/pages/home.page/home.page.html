@@ -56,53 +56,18 @@
     </div>
   </section>
 
-  <section class="plugins">
+  <section class="plugins" *ngFor="let category of pluginCategories">
     <div class="plugins__header">
-      <h2>Official Plugins</h2>
+      <h2>{{ category.label }}</h2>
     </div>
     <div class="plugins__grid">
       <button
         class="plugins__card"
-        *ngFor="let plugin of officialPlugins"
+        [class.plugins__card--pending]="!plugin.link"
+        *ngFor="let plugin of category.plugins"
         (click)="onPluginTap(plugin)"
       >
-        <div class="plugins__icon">
-          <ion-icon [name]="plugin.icon"></ion-icon>
-        </div>
-        <span class="plugins__label">{{ plugin.label }}</span>
-      </button>
-    </div>
-  </section>
-
-  <section class="plugins">
-    <div class="plugins__header">
-      <h2>Plugins Community</h2>
-    </div>
-    <div class="plugins__grid">
-      <button
-        class="plugins__card"
-        *ngFor="let plugin of communityPlugins"
-        (click)="onPluginTap(plugin)"
-      >
-        <div class="plugins__icon plugins__icon-community">
-          <ion-icon [name]="plugin.icon"></ion-icon>
-        </div>
-        <span class="plugins__label">{{ plugin.label }}</span>
-      </button>
-    </div>
-  </section>
-
-  <section class="plugins">
-    <div class="plugins__header">
-      <h2>Pending Plugins</h2>
-    </div>
-    <div class="plugins__grid">
-      <button
-        class="plugins__card"
-        *ngFor="let plugin of pendingPlugins"
-        (click)="onPluginTap(plugin)"
-      >
-        <div class="plugins__icon plugins__icon-pending">
+        <div class="plugins__icon" [class.plugins__icon-pending]="!plugin.link">
           <ion-icon [name]="plugin.icon"></ion-icon>
         </div>
         <span class="plugins__label">{{ plugin.label }}</span>

@@ -1,0 +1,151 @@
+<app-shell activePage="status-bar">
+  <app-ui-header
+    title="Status Bar"
+    subtitle="Control the native status bar using the Capacitor StatusBar plugin."
+  />
+
+  @if (isBrowserEnv()) {
+  <section class="notice">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span
+      >You're in the browser: the StatusBar plugin only works on a native
+      device.</span
+    >
+  </section>
+  }
+
+  <!-- Style -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="contrast-outline"></ion-icon>
+      <h3>Style</h3>
+    </div>
+    <div class="option-grid">
+      @for (option of styleOptions; track option.value) {
+      <button
+        type="button"
+        class="option-card"
+        [class.option-card--active]="isActiveStyle(option)"
+        [disabled]="isBusy()"
+        (click)="setStyle(option)"
+      >
+        <ion-icon [name]="option.icon"></ion-icon>
+        <span>{{ option.label }}</span>
+      </button>
+      }
+    </div>
+  </section>
+
+  <!-- Background color -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="color-palette-outline"></ion-icon>
+      <h3>Background Color</h3>
+      <span class="panel__badge">Android only</span>
+    </div>
+    <div class="color-grid">
+      @for (swatch of colorSwatches; track swatch.value) {
+      <button
+        type="button"
+        class="color-swatch"
+        [class.color-swatch--active]="isActiveColor(swatch)"
+        [style.background]="swatch.value"
+        [disabled]="isBusy()"
+        (click)="setColor(swatch)"
+        [attr.aria-label]="swatch.label"
+      >
+        @if (isActiveColor(swatch)) {
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        }
+      </button>
+      }
+    </div>
+  </section>
+
+  <!-- Visibility -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon
+        [name]="info()?.visible ? 'eye-outline' : 'eye-off-outline'"
+      ></ion-icon>
+      <h3>Visibility</h3>
+    </div>
+    <p class="panel__hint">
+      {{ info()?.visible ? 'The status bar is currently visible.' : 'The status
+      bar is currently hidden.' }}
+    </p>
+    <app-ui-button
+      [text]="info()?.visible ? 'Hide Status Bar' : 'Show Status Bar'"
+      [icon]="info()?.visible ? 'eye-off-outline' : 'eye-outline'"
+      [disabled]="isBusy()"
+      (buttonClick)="toggleVisibility()"
+    />
+  </section>
+
+  <!-- Overlay -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="layers-outline"></ion-icon>
+      <h3>Overlay WebView</h3>
+    </div>
+    <p class="panel__hint">
+      {{ info()?.overlays ? 'Content extends behind the status bar.' : 'Content
+      starts below the status bar.' }}
+    </p>
+    <app-ui-button
+      [text]="info()?.overlays ? 'Disable Overlay' : 'Enable Overlay'"
+      icon="layers-outline"
+      variant="outline"
+      [disabled]="isBusy()"
+      (buttonClick)="toggleOverlay()"
+    />
+  </section>
+
+  <!-- Current state -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Current State</h3>
+    </div>
+
+    <div class="info-row">
+      <span class="info-row__label">Visible</span>
+      <span class="info-row__value">{{ info()?.visible ? 'Yes' : 'No' }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-row__label">Style</span>
+      <span class="info-row__value">{{ info()?.style ?? '—' }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-row__label">Color</span>
+      <span class="info-row__value">{{ info()?.color ?? '—' }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-row__label">Overlays</span>
+      <span class="info-row__value">{{ info()?.overlays ? 'Yes' : 'No' }}</span>
+    </div>
+  </section>
+
+  <!-- Activity log -->
+  @if (log().length) {
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="time-outline"></ion-icon>
+      <h3>Activity Log</h3>
+    </div>
+
+    @for (entry of log(); track entry.timestamp) {
+    <div class="history__row">
+      <span
+        class="history__dot"
+        [class]="'history__dot--' + entry.variant"
+      ></span>
+      <span class="history__label">{{ entry.message }}</span>
+      <span class="history__time"
+        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
+      >
+    </div>
+    }
+  </section>
+  }
+</app-shell>

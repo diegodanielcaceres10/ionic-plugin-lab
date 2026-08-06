@@ -31,24 +31,10 @@ const routes: Routes = [
       ),
   },
   {
-    path: 'device',
+    path: 'local-notifications',
     loadComponent: () =>
-      import('./features/device/pages/device.page/device.page').then(
-        (m) => m.DevicePage,
-      ),
-  },
-  {
-    path: 'browser',
-    loadComponent: () =>
-      import('./features/browser/pages/browser.page/browser.page').then(
-        (m) => m.BrowserPage,
-      ),
-  },
-  {
-    path: 'filesystem',
-    loadComponent: () =>
-      import('./features/filesystem/pages/filesystem.page/filesystem.page').then(
-        (m) => m.FilesystemPage,
+      import('./features/local-notifications/pages/local-notifications.page/local-notifications.page').then(
+        (m) => m.LocalNotificationsPage,
       ),
   },
   {
@@ -59,6 +45,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'browser',
+    loadComponent: () =>
+      import('./features/browser/pages/browser.page/browser.page').then(
+        (m) => m.BrowserPage,
+      ),
+  },
+  {
     path: 'clipboard',
     loadComponent: () =>
       import('./features/clipboard/pages/clipboard.page/clipboard.page').then(
@@ -66,17 +59,31 @@ const routes: Routes = [
       ),
   },
   {
-    path: 'local-notifications',
-    loadComponent: () =>
-      import('./features/local-notifications/pages/local-notifications.page/local-notifications.page').then(
-        (m) => m.LocalNotificationsPage,
-      ),
-  },
-  {
     path: 'share',
     loadComponent: () =>
       import('./features/share/pages/share.page/share.page').then(
         (m) => m.SharePage,
+      ),
+  },
+  {
+    path: 'filesystem',
+    loadComponent: () =>
+      import('./features/filesystem/pages/filesystem.page/filesystem.page').then(
+        (m) => m.FilesystemPage,
+      ),
+  },
+  {
+    path: 'device',
+    loadComponent: () =>
+      import('./features/device/pages/device.page/device.page').then(
+        (m) => m.DevicePage,
+      ),
+  },
+  {
+    path: 'status-bar',
+    loadComponent: () =>
+      import('./features/status-bar/pages/status-bar.page/status-bar.page').then(
+        (m) => m.StatusBarPage,
       ),
   },
   {
