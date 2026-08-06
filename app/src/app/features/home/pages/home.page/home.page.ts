@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { SplashScreen } from '@capacitor/splash-screen';
 import { Capacitor } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
@@ -265,13 +264,9 @@ export class HomePage implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    // ...whatever Home already loads (data, config, etc.)
-
-    // Only native platforms show a splash screen; hiding it on web is a no-op
     if (Capacitor.isNativePlatform()) {
       await this.delay(5000);
       await this.statusBarService.setDefault();
-      // await SplashScreen.hide();
     }
   }
 
