@@ -10,14 +10,20 @@ const config: CapacitorConfig = {
       iconColor: '#4F46E5',
     },
     SplashScreen: {
-      // Take manual control instead of letting it auto-hide after
-      // launchShowDuration — this way we hide it once Home is actually ready
-      launchAutoHide: false,
+      launchShowDuration: 0,
+      launchAutoHide: true,
+      launchFadeOutDuration: 3000,
       backgroundColor: '#ffffffff',
+      androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
-      showSpinner: false,
+      showSpinner: true,
+      androidSpinnerStyle: 'large',
+      iosSpinnerStyle: 'small',
+      spinnerColor: '#999999',
       splashFullScreen: true,
       splashImmersive: true,
+      layoutName: 'launch_screen',
+      useDialog: true,
     },
   },
 };
