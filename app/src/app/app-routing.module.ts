@@ -106,6 +106,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'biometrics',
+    loadComponent: () =>
+      import('./features/biometrics/pages/biometrics.page/biometrics.page').then(
+        (m) => m.BiometricsPage,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },

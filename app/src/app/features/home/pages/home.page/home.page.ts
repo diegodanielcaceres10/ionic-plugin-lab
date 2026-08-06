@@ -191,7 +191,11 @@ export class HomePage {
       plugins: [
         { icon: 'radio-outline', label: 'NFC', link: 'nfc' },
         { icon: 'bluetooth-outline', label: 'Bluetooth LE', link: 'bluetooth' },
-        { icon: 'finger-print-outline', label: 'Biometrics' },
+        {
+          icon: 'finger-print-outline',
+          label: 'Biometrics',
+          link: 'biometrics',
+        },
       ],
     },
     {

@@ -21,7 +21,8 @@ type AppTabsTypes =
   | 'local-notifications'
   | 'clipboard'
   | 'nfc'
-  | 'bluetooth';
+  | 'bluetooth'
+  | 'biometrics';
 
 @Component({
   selector: 'app-shell',

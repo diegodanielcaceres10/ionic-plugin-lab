@@ -1,0 +1,111 @@
+<app-shell activePage="biometrics">
+  <app-ui-header
+    title="Biometrics"
+    subtitle="Authenticate with Face ID, Touch ID or fingerprint using the Biometric Auth plugin."
+  />
+
+  @if (isBrowserEnv()) {
+  <section class="notice">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span
+      >You're in the browser: biometry is simulated below instead of using real
+      hardware.</span
+    >
+  </section>
+  }
+
+  <!-- Authenticate -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+      <h3>Authenticate</h3>
+    </div>
+
+    <textarea
+      class="field"
+      rows="2"
+      [value]="reason()"
+      (input)="updateReason($any($event.target).value)"
+    ></textarea>
+
+    <button
+      type="button"
+      class="toggle-row"
+      (click)="toggleAllowDeviceCredential()"
+    >
+      <ion-icon
+        [name]="allowDeviceCredential() ? 'lock-open-outline' : 'lock-closed-outline'"
+      ></ion-icon>
+      <span class="toggle-row__label">Allow device credential fallback</span>
+      <span
+        class="toggle-row__state"
+        [class.toggle-row__state--on]="allowDeviceCredential()"
+        >{{ allowDeviceCredential() ? 'On' : 'Off' }}</span
+      >
+    </button>
+
+    <app-ui-button
+      text="Authenticate"
+      icon="finger-print-outline"
+      [disabled]="isBusy()"
+      (buttonClick)="authenticate()"
+    />
+  </section>
+
+  <!-- Availability -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon [name]="biometryIcon(info()?.biometryType)"></ion-icon>
+      <h3>Availability</h3>
+    </div>
+
+    <div class="info-row">
+      <span class="info-row__label">Available</span>
+      <span class="info-row__value"
+        >{{ info()?.isAvailable ? 'Yes' : 'No' }}</span
+      >
+    </div>
+    <div class="info-row">
+      <span class="info-row__label">Strong biometry</span>
+      <span class="info-row__value"
+        >{{ info()?.strongBiometryIsAvailable ? 'Yes' : 'No' }}</span
+      >
+    </div>
+    <div class="info-row">
+      <span class="info-row__label">Type</span>
+      <span class="info-row__value">{{ info()?.biometryType ?? '—' }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-row__label">Device secure</span>
+      <span class="info-row__value"
+        >{{ info()?.deviceIsSecure ? 'Yes' : 'No' }}</span
+      >
+    </div>
+    @if (info() && !info()!.isAvailable && info()!.reason) {
+    <p class="panel__hint">{{ info()!.reason }}</p>
+    }
+  </section>
+
+  <!-- Activity log -->
+  @if (log().length) {
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="time-outline"></ion-icon>
+      <h3>Activity Log</h3>
+    </div>
+
+    @for (entry of log(); track entry.timestamp) {
+    <div class="history__row">
+      <span
+        class="history__dot"
+        [class]="'history__dot--' + entry.variant"
+      ></span>
+      <span class="history__label">{{ entry.message }}</span>
+      <span class="history__time"
+        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
+      >
+    </div>
+    }
+  </section>
+  }
+</app-shell>
