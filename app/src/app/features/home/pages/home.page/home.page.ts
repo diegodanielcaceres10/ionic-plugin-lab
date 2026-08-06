@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { Capacitor } from '@capacitor/core';
 import { Router } from '@angular/router';
@@ -87,8 +87,7 @@ interface PluginCategory {
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
 })
-export class HomePage {
-  SPLASH_MIN_DURATION_MS = 5000;
+export class HomePage implements OnInit {
   stats: StatItem[] = [
     { icon: 'cube-outline', value: 36, label: 'Plugins', color: 'primary' },
     {
@@ -270,9 +269,9 @@ export class HomePage {
 
     // Only native platforms show a splash screen; hiding it on web is a no-op
     if (Capacitor.isNativePlatform()) {
-      await this.delay(this.SPLASH_MIN_DURATION_MS);
+      await this.delay(5000);
       await this.statusBarService.setDefault();
-      await SplashScreen.hide();
+      // await SplashScreen.hide();
     }
   }
 
