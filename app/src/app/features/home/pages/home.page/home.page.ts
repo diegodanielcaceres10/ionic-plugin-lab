@@ -129,7 +129,6 @@ export class HomePage {
         { icon: 'phone-portrait-outline', label: 'Haptics', link: 'haptics' },
         { icon: 'wifi-outline', label: 'Network', link: 'network' },
         { icon: 'move-outline', label: 'Motion', link: 'motion' },
-        { icon: 'text-outline', label: 'Text Zoom' },
       ],
     },
     {
@@ -148,15 +147,6 @@ export class HomePage {
       label: 'UI & System Bars',
       plugins: [
         { icon: 'stats-chart-outline', label: 'StatusBar', link: 'status-bar' },
-        { icon: 'layers-outline', label: 'System Bars' },
-        { icon: 'water-outline', label: 'SplashScreen' },
-        { icon: 'list-outline', label: 'Action Sheet' },
-        { icon: 'chatbox-ellipses-outline', label: 'Dialog' },
-        { icon: 'chatbubble-outline', label: 'Toast' },
-        { icon: 'keypad-outline', label: 'Keyboard' },
-        { icon: 'sync-outline', label: 'Screen Orientation' },
-        { icon: 'eye-off-outline', label: 'Privacy Screen' },
-        { icon: 'volume-high-outline', label: 'Screen Reader' },
       ],
     },
     {
@@ -164,7 +154,6 @@ export class HomePage {
       plugins: [
         { icon: 'globe-outline', label: 'Browser', link: 'browser' },
         { icon: 'open-outline', label: 'InAppBrowser' },
-        { icon: 'cloud-download-outline', label: 'Http' },
         { icon: 'rocket-outline', label: 'App Launcher' },
       ],
     },
