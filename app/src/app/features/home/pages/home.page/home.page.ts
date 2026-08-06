@@ -190,7 +190,7 @@ export class HomePage {
       label: 'Wireless & Security',
       plugins: [
         { icon: 'radio-outline', label: 'NFC', link: 'nfc' },
-        { icon: 'bluetooth-outline', label: 'Bluetooth LE' },
+        { icon: 'bluetooth-outline', label: 'Bluetooth LE', link: 'bluetooth' },
         { icon: 'finger-print-outline', label: 'Biometrics' },
       ],
     },

@@ -20,7 +20,8 @@ type AppTabsTypes =
   | 'share'
   | 'local-notifications'
   | 'clipboard'
-  | 'nfc';
+  | 'nfc'
+  | 'bluetooth';
 
 @Component({
   selector: 'app-shell',
