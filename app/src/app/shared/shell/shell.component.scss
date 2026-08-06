@@ -1,5 +1,19 @@
+$primary-color: #9072fb;
+$secondary-color: #4bd7b5;
+
 :host {
   display: contents;
+}
+
+.shell-title {
+  margin: 0 auto;
+  text-align: center;
+  font-weight: 800;
+  background: linear-gradient(90deg, $primary-color, $secondary-color);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  width: fit-content;
 }
 
 .shell-content {
