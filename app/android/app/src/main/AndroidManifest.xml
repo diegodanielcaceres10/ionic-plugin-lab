@@ -33,6 +33,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+        
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode_ui" />
     </application>
 
     <!-- Permissions -->
@@ -40,6 +44,9 @@
 
     <!-- Camera: required for CameraSource.Camera (opening the camera) -->
     <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Access to the flashlight (optional, only needed if you use the torch toggle) -->
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
 
     <!-- Gallery: required for CameraSource.Photos (chooseFromGallery) -->
     <!-- Android 13+ (API 33+) uses the new granular media permission -->

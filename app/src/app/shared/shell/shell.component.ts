@@ -9,16 +9,17 @@ type AppTabsTypes =
   | 'favorites'
   | 'settings'
   | 'camera'
+  | 'barcode-scanner'
   | 'geolocation'
-  | 'network'
-  | 'local-notifications'
-  | 'haptics'
-  | 'browser'
-  | 'clipboard'
-  | 'share'
-  | 'filesystem'
   | 'device'
-  | 'status-bar';
+  | 'haptics'
+  | 'network'
+  | 'filesystem'
+  | 'status-bar'
+  | 'browser'
+  | 'share'
+  | 'local-notifications'
+  | 'clipboard';
 
 @Component({
   selector: 'app-shell',

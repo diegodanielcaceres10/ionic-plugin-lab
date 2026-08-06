@@ -107,7 +107,11 @@ export class HomePage {
       label: 'Media & Scanning',
       plugins: [
         { icon: 'camera-outline', label: 'Camera', link: 'camera' },
-        { icon: 'barcode-outline', label: 'Barcode Scanner' },
+        {
+          icon: 'barcode-outline',
+          label: 'Barcode Scanner',
+          link: 'barcode-scanner',
+        },
       ],
     },
     {
@@ -131,8 +135,8 @@ export class HomePage {
     {
       label: 'Storage & Files',
       plugins: [
-        { icon: 'options-outline', label: 'Preferences' },
         { icon: 'folder-outline', label: 'Filesystem', link: 'filesystem' },
+        { icon: 'options-outline', label: 'Preferences' },
         { icon: 'server-outline', label: 'SQLite' },
         { icon: 'document-attach-outline', label: 'File Picker' },
         { icon: 'swap-vertical-outline', label: 'File Transfer' },

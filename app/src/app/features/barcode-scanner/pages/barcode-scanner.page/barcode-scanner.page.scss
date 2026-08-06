@@ -1,0 +1,241 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  min-height: 30vh;
+
+  &__icon {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    margin-bottom: 8px;
+
+    ion-icon {
+      font-size: 2.2rem;
+      color: var(--ion-color-primary);
+    }
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ion-color-dark, #1a1a2e);
+  }
+
+  p {
+    margin: 0 0 14px;
+    max-width: 260px;
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    line-height: 1.4;
+  }
+
+  &__spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    flex: 1;
+    border: 2px dashed rgba(var(--ion-color-primary-rgb), 0.35);
+    border-radius: 18px;
+    background: rgba(var(--ion-color-primary-rgb), 0.03);
+  }
+
+  &__result {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(var(--ion-color-success-rgb, 45, 211, 111), 0.12);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ion-color-success, #2dd36f);
+
+    ion-icon {
+      font-size: 0.95rem;
+    }
+  }
+
+  &__value {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    word-break: break-all;
+    color: var(--ion-color-dark, #1a1a2e);
+  }
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.info {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+
+    ion-icon {
+      font-size: 1.2rem;
+      color: var(--ion-color-primary);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+
+    &:first-of-type {
+      border-top: none;
+    }
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ion-color-dark, #1a1a2e);
+    font-size: 0.9rem;
+
+    ion-icon {
+      font-size: 1rem;
+      color: var(--ion-color-medium);
+      background: rgba(var(--ion-color-primary-rgb), 0.08);
+      border-radius: 8px;
+      padding: 6px;
+      box-sizing: content-box;
+    }
+  }
+
+  &__value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+    text-align: right;
+  }
+}
+
+.history {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    ion-icon {
+      font-size: 1.1rem;
+      color: var(--ion-color-primary);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+  }
+
+  &__clear {
+    background: none;
+    border: none;
+    padding: 6px;
+    color: var(--ion-color-medium);
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+
+    &:first-of-type {
+      border-top: none;
+    }
+  }
+
+  &__value {
+    font-size: 0.85rem;
+    color: var(--ion-color-dark, #1a1a2e);
+
+    &.truncate {
+      max-width: 70%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &__format {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    text-transform: uppercase;
+  }
+}

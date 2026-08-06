@@ -1,0 +1,109 @@
+<app-shell activePage="barcode-scanner">
+  <app-ui-header
+    title="Barcode Scanner"
+    subtitle="Scan QR codes and barcodes using the Capacitor ML Kit plugin."
+  />
+
+  <section class="card">
+    @if (state() === 'scanning') {
+    <div class="card__spinner">
+      <ion-spinner name="circular" color="primary"></ion-spinner>
+    </div>
+    } @else if (state() === 'scanned') {
+    <div class="card__result">
+      <span class="card__badge">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        Barcode detected
+      </span>
+      <p class="card__value">{{ scan()?.value }}</p>
+    </div>
+    } @else {
+    <div class="card__empty">
+      <div class="card__icon">
+        <ion-icon name="barcode-outline"></ion-icon>
+      </div>
+      <h2>No barcode scanned yet</h2>
+      <p>Tap the button below to open the scanner and read a code.</p>
+    </div>
+    }
+  </section>
+
+  <section class="buttons">
+    <app-ui-button
+      text="Scan Barcode"
+      icon="scan-outline"
+      [disabled]="state() === 'scanning'"
+      (buttonClick)="scanBarcode()"
+    />
+
+    @if (state() === 'scanned' && scan()?.isUrl) {
+    <app-ui-button
+      text="Open Link"
+      icon="open-outline"
+      variant="outline"
+      (buttonClick)="openLink()"
+    />
+    } @if (state() === 'scanned') {
+    <app-ui-button
+      text="Copy Value"
+      icon="copy-outline"
+      variant="outline"
+      (buttonClick)="copyValue()"
+    />
+    }
+  </section>
+
+  <section class="info">
+    <div class="info__header">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <h3>Barcode Information</h3>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <span>Format</span>
+      </div>
+      <span class="info__value">{{ scan()?.format ?? '—' }}</span>
+    </div>
+
+    <div class="info__row">
+      <div class="info__label">
+        <ion-icon name="link-outline"></ion-icon>
+        <span>Is Link</span>
+      </div>
+      <span class="info__value"
+        >{{ scan() ? (scan()!.isUrl ? 'Yes' : 'No') : '—' }}</span
+      >
+    </div>
+
+    <div class="info__row" *ngIf="state() === 'scanned'">
+      <div class="info__label">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Scanned</span>
+      </div>
+      <span class="info__value">{{ scan()?.scannedAt ?? '—' }}</span>
+    </div>
+  </section>
+
+  @if (history().length > 0) {
+  <section class="history">
+    <div class="history__header">
+      <div class="history__title">
+        <ion-icon name="time-outline"></ion-icon>
+        <h3>Recent Scans</h3>
+      </div>
+      <button class="history__clear" (click)="clearHistory()">
+        <ion-icon name="trash-outline"></ion-icon>
+      </button>
+    </div>
+
+    @for (item of history(); track item.scannedAt + item.value) {
+    <div class="history__row">
+      <span class="history__value truncate">{{ item.value }}</span>
+      <span class="history__format">{{ item.format }}</span>
+    </div>
+    }
+  </section>
+  }
+</app-shell>

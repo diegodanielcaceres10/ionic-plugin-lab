@@ -17,59 +17,17 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'barcode-scanner',
+    loadComponent: () =>
+      import('./features/barcode-scanner/pages/barcode-scanner.page/barcode-scanner.page').then(
+        (m) => m.BarcodeScannerPage,
+      ),
+  },
+  {
     path: 'geolocation',
     loadComponent: () =>
       import('./features/geolocation/pages/geolocation.page/geolocation.page').then(
         (m) => m.GeolocationPage,
-      ),
-  },
-  {
-    path: 'network',
-    loadComponent: () =>
-      import('./features/network/pages/network.page/network.page').then(
-        (m) => m.NetworkPage,
-      ),
-  },
-  {
-    path: 'local-notifications',
-    loadComponent: () =>
-      import('./features/local-notifications/pages/local-notifications.page/local-notifications.page').then(
-        (m) => m.LocalNotificationsPage,
-      ),
-  },
-  {
-    path: 'haptics',
-    loadComponent: () =>
-      import('./features/haptics/pages/haptics.page/haptics.page').then(
-        (m) => m.HapticsPage,
-      ),
-  },
-  {
-    path: 'browser',
-    loadComponent: () =>
-      import('./features/browser/pages/browser.page/browser.page').then(
-        (m) => m.BrowserPage,
-      ),
-  },
-  {
-    path: 'clipboard',
-    loadComponent: () =>
-      import('./features/clipboard/pages/clipboard.page/clipboard.page').then(
-        (m) => m.ClipboardPage,
-      ),
-  },
-  {
-    path: 'share',
-    loadComponent: () =>
-      import('./features/share/pages/share.page/share.page').then(
-        (m) => m.SharePage,
-      ),
-  },
-  {
-    path: 'filesystem',
-    loadComponent: () =>
-      import('./features/filesystem/pages/filesystem.page/filesystem.page').then(
-        (m) => m.FilesystemPage,
       ),
   },
   {
@@ -80,10 +38,59 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'haptics',
+    loadComponent: () =>
+      import('./features/haptics/pages/haptics.page/haptics.page').then(
+        (m) => m.HapticsPage,
+      ),
+  },
+  {
+    path: 'network',
+    loadComponent: () =>
+      import('./features/network/pages/network.page/network.page').then(
+        (m) => m.NetworkPage,
+      ),
+  },
+  {
+    path: 'filesystem',
+    loadComponent: () =>
+      import('./features/filesystem/pages/filesystem.page/filesystem.page').then(
+        (m) => m.FilesystemPage,
+      ),
+  },
+  {
     path: 'status-bar',
     loadComponent: () =>
       import('./features/status-bar/pages/status-bar.page/status-bar.page').then(
         (m) => m.StatusBarPage,
+      ),
+  },
+  {
+    path: 'browser',
+    loadComponent: () =>
+      import('./features/browser/pages/browser.page/browser.page').then(
+        (m) => m.BrowserPage,
+      ),
+  },
+  {
+    path: 'local-notifications',
+    loadComponent: () =>
+      import('./features/local-notifications/pages/local-notifications.page/local-notifications.page').then(
+        (m) => m.LocalNotificationsPage,
+      ),
+  },
+  {
+    path: 'share',
+    loadComponent: () =>
+      import('./features/share/pages/share.page/share.page').then(
+        (m) => m.SharePage,
+      ),
+  },
+  {
+    path: 'clipboard',
+    loadComponent: () =>
+      import('./features/clipboard/pages/clipboard.page/clipboard.page').then(
+        (m) => m.ClipboardPage,
       ),
   },
   {
