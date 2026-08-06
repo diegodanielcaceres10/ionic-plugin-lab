@@ -25,7 +25,7 @@ $secondary-color: #4bd7b5;
       height: 160px;
       top: 0;
       right: 20px;
-      background: $primary-color;
+      background: $secondary-color;
     }
 
     &--emerald {
@@ -33,7 +33,7 @@ $secondary-color: #4bd7b5;
       height: 140px;
       bottom: 0;
       left: 20px;
-      background: $secondary-color;
+      background: $primary-color;
     }
   }
 

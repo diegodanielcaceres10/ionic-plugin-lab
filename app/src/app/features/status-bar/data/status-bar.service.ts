@@ -55,6 +55,10 @@ export class StatusBarService {
     return StatusBar.getInfo();
   }
 
+  async setDefault(): Promise<void> {
+    await this.setStyle(Style.Light);
+  }
+
   async setStyle(style: Style): Promise<void> {
     if (this.isBrowser()) throw new BrowserNotSupportedError();
     await StatusBar.setStyle({ style });

@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { Capacitor } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { CommonModule } from '@angular/common';
@@ -58,6 +60,7 @@ import {
   peopleOutline,
   calendarOutline,
 } from 'ionicons/icons';
+import { StatusBarService } from '../../../status-bar/data/status-bar.service';
 
 interface StatItem {
   icon: string;
@@ -85,6 +88,7 @@ interface PluginCategory {
   styleUrls: ['./home.page.scss'],
 })
 export class HomePage {
+  SPLASH_MIN_DURATION_MS = 5000;
   stats: StatItem[] = [
     { icon: 'cube-outline', value: 36, label: 'Plugins', color: 'primary' },
     {
@@ -101,7 +105,6 @@ export class HomePage {
     },
     { icon: 'time-outline', value: 0, label: 'Recent', color: 'warning' },
   ];
-
   pluginCategories: PluginCategory[] = [
     {
       label: 'Media & Scanning',
@@ -202,7 +205,10 @@ export class HomePage {
     },
   ];
 
-  constructor(private router: Router) {
+  constructor(
+    private statusBarService: StatusBarService,
+    private router: Router,
+  ) {
     addIcons({
       'menu-outline': menuOutline,
       'flask-outline': flaskOutline,
@@ -259,6 +265,20 @@ export class HomePage {
     });
   }
 
+  async ngOnInit(): Promise<void> {
+    // ...whatever Home already loads (data, config, etc.)
+
+    // Only native platforms show a splash screen; hiding it on web is a no-op
+    if (Capacitor.isNativePlatform()) {
+      await this.delay(this.SPLASH_MIN_DURATION_MS);
+      await this.statusBarService.setDefault();
+      await SplashScreen.hide();
+    }
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
   onPluginTap(plugin: PluginItem): void {
     if (plugin.link) {
       this.router.navigateByUrl(plugin.link);
