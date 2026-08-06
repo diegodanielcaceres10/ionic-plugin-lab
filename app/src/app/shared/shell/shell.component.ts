@@ -14,6 +14,7 @@ type AppTabsTypes =
   | 'device'
   | 'haptics'
   | 'network'
+  | 'motion'
   | 'filesystem'
   | 'status-bar'
   | 'browser'

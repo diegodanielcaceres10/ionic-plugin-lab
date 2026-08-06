@@ -128,7 +128,7 @@ export class HomePage {
         { icon: 'phone-portrait-outline', label: 'Device', link: 'device' },
         { icon: 'phone-portrait-outline', label: 'Haptics', link: 'haptics' },
         { icon: 'wifi-outline', label: 'Network', link: 'network' },
-        { icon: 'move-outline', label: 'Motion' },
+        { icon: 'move-outline', label: 'Motion', link: 'motion' },
         { icon: 'text-outline', label: 'Text Zoom' },
       ],
     },

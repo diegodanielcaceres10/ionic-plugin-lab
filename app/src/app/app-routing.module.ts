@@ -52,6 +52,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'motion',
+    loadComponent: () =>
+      import('./features/motion/pages/motion.page/motion.page').then(
+        (m) => m.MotionPage,
+      ),
+  },
+  {
     path: 'filesystem',
     loadComponent: () =>
       import('./features/filesystem/pages/filesystem.page/filesystem.page').then(

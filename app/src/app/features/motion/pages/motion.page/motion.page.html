@@ -1,0 +1,141 @@
+<app-shell activePage="motion">
+  <app-ui-header
+    title="Motion"
+    subtitle="Read accelerometer and orientation data using the Capacitor Motion plugin."
+  />
+
+  @if (needsPermission() && !permissionGranted()) {
+  <section class="notice">
+    <ion-icon name="lock-closed-outline"></ion-icon>
+    <span
+      >iOS requires permission before reading motion data. Tap the button below
+      to request it.</span
+    >
+  </section>
+
+  <section class="panel">
+    <app-ui-button
+      text="Request Motion Permission"
+      icon="lock-closed-outline"
+      (buttonClick)="requestPermission()"
+    />
+  </section>
+  }
+
+  <!-- Accelerometer -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="pulse-outline"></ion-icon>
+      <h3>Accelerometer</h3>
+    </div>
+    <p class="panel__hint">
+      On desktop it's normal to see zeros — try this on a real device or an
+      emulator with sensors enabled.
+    </p>
+
+    <div class="reading-grid">
+      <div class="reading-card">
+        <span class="reading-card__label">X</span>
+        <span class="reading-card__value"
+          >{{ formatNumber(acceleration()?.x) }}</span
+        >
+      </div>
+      <div class="reading-card">
+        <span class="reading-card__label">Y</span>
+        <span class="reading-card__value"
+          >{{ formatNumber(acceleration()?.y) }}</span
+        >
+      </div>
+      <div class="reading-card">
+        <span class="reading-card__label">Z</span>
+        <span class="reading-card__value"
+          >{{ formatNumber(acceleration()?.z) }}</span
+        >
+      </div>
+    </div>
+
+    <div class="info-row">
+      <span class="info-row__label">Rotation rate α / β / γ</span>
+      <span class="info-row__value">
+        {{ formatNumber(rotationRate()?.alpha) }} / {{
+        formatNumber(rotationRate()?.beta) }} / {{
+        formatNumber(rotationRate()?.gamma) }}
+      </span>
+    </div>
+
+    <app-ui-button
+      [text]="isTrackingAccel() ? 'Stop' : 'Start Accelerometer'"
+      [icon]="isTrackingAccel() ? 'stop-outline' : 'play-outline'"
+      [variant]="isTrackingAccel() ? 'outline' : 'solid'"
+      (buttonClick)="toggleAccel()"
+    />
+  </section>
+
+  <!-- Orientation / bubble level -->
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="compass-outline"></ion-icon>
+      <h3>Orientation</h3>
+    </div>
+    <p class="panel__hint">Tilt the device to move the bubble.</p>
+
+    <div class="bubble-level">
+      <div class="bubble-level__track">
+        <div
+          class="bubble-level__dot"
+          [style.left]="bubblePosition().left"
+          [style.top]="bubblePosition().top"
+        ></div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <span class="info-row__label">Heading (α)</span>
+      <span class="info-row__value"
+        >{{ formatNumber(orientation()?.alpha) }}°</span
+      >
+    </div>
+    <div class="info-row">
+      <span class="info-row__label">Front/back tilt (β)</span>
+      <span class="info-row__value"
+        >{{ formatNumber(orientation()?.beta) }}°</span
+      >
+    </div>
+    <div class="info-row">
+      <span class="info-row__label">Left/right tilt (γ)</span>
+      <span class="info-row__value"
+        >{{ formatNumber(orientation()?.gamma) }}°</span
+      >
+    </div>
+
+    <app-ui-button
+      [text]="isTrackingOrientation() ? 'Stop' : 'Start Orientation'"
+      [icon]="isTrackingOrientation() ? 'stop-outline' : 'play-outline'"
+      [variant]="isTrackingOrientation() ? 'outline' : 'solid'"
+      (buttonClick)="toggleOrientation()"
+    />
+  </section>
+
+  <!-- Activity log -->
+  @if (log().length) {
+  <section class="panel">
+    <div class="panel__header">
+      <ion-icon name="time-outline"></ion-icon>
+      <h3>Activity Log</h3>
+    </div>
+
+    @for (entry of log(); track entry.timestamp) {
+    <div class="history__row">
+      <span
+        class="history__dot"
+        [class]="'history__dot--' + entry.variant"
+      ></span>
+      <span class="history__label">{{ entry.message }}</span>
+      <span class="history__time"
+        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
+      >
+    </div>
+    }
+  </section>
+  }
+</app-shell>
