@@ -17,6 +17,7 @@ const SCHEMA_STATEMENTS: string[] = [
     category TEXT NOT NULL,
     icon TEXT NOT NULL,
     link TEXT,
+    plugin_type TEXT NOT NULL,
     is_tested INTEGER NOT NULL DEFAULT 0,
     is_favorited INTEGER NOT NULL DEFAULT 0,
     last_used_at TEXT

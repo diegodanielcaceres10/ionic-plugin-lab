@@ -10,6 +10,7 @@ export interface PluginCatalogEntry {
   category: string;
   icon: string;
   link?: string;
+  pluginType: boolean;
   isTested: boolean;
   isFavorited: boolean;
 }
@@ -26,6 +27,7 @@ interface PluginRow extends Record<string, unknown> {
   category: string;
   icon: string;
   link: string | null;
+  plugin_type: string;
   is_tested: number;
   is_favorited: number;
   last_used_at: string | null;
@@ -98,12 +100,22 @@ export class PluginsCatalogService {
     }
   }
 
+  /** Finds a single plugin by its exact name, or null if none exists. */
+  async findByName(name: string): Promise<PluginCatalogEntry | null> {
+    const rows = await this.sqliteService.select<PluginRow>(TABLE, {
+      where: { name },
+      limit: 1,
+    });
+    return rows.length > 0 ? this.toEntry(rows[0]) : null;
+  }
+
   private toRow(entry: PluginSeedEntry): Partial<PluginRow> {
     return {
       name: entry.name,
       category: entry.category,
       icon: entry.icon,
       link: entry.link ?? null,
+      plugin_type: entry.pluginType,
       is_tested: 0,
       is_favorited: 0,
     };
@@ -116,6 +128,7 @@ export class PluginsCatalogService {
       category: row.category,
       icon: row.icon,
       link: row.link ?? undefined,
+      pluginType: !!row.plugin_type,
       isTested: !!row.is_tested,
       isFavorited: !!row.is_favorited,
     };

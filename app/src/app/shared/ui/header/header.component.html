@@ -2,5 +2,28 @@
   <div class="header__info">
     <h1>{{ title() }}</h1>
     <p>{{ subtitle() }}</p>
+
+    @if (pluginType()) {
+      <span
+        class="header__badge"
+        [class.header__badge--community]="pluginType() === 'community'"
+      >
+        <ion-icon [name]="badgeIcon"></ion-icon>
+        {{ badgeLabel }}
+      </span>
+    }
   </div>
+
+  @if (pluginType()) {
+    <button
+      type="button"
+      class="header__favorite"
+      [class.header__favorite--active]="isFavorited()"
+      [attr.aria-pressed]="isFavorited()"
+      aria-label="Toggle favorite"
+      (click)="favoriteToggled.emit()"
+    >
+      <ion-icon [name]="isFavorited() ? 'star' : 'star-outline'"></ion-icon>
+    </button>
+  }
 </section>

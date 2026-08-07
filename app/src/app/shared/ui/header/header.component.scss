@@ -9,17 +9,70 @@
     padding-top: 2px;
 
     h1 {
-      margin: 0 0 2px;
+      margin: 0 0 6px;
       font-size: 1.3rem;
       font-weight: 800;
       color: var(--ion-color-dark, #1a1a2e);
     }
 
     p {
-      margin: 0;
+      margin: 8px 0 0;
       font-size: 0.85rem;
       color: var(--ion-color-medium);
       line-height: 1.35;
+    }
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    margin: 5px 0;
+
+    ion-icon {
+      font-size: 0.85rem;
+    }
+
+    &--community {
+      color: var(--ion-color-tertiary, #6a5acd);
+      background: rgba(var(--ion-color-tertiary-rgb, 106, 90, 205), 0.1);
+    }
+  }
+
+  &__favorite {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-top: 2px;
+    border: none;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    transition:
+      color 0.15s ease,
+      transform 0.1s ease;
+
+    ion-icon {
+      font-size: 1.25rem;
+    }
+
+    &:active {
+      transform: scale(0.94);
+    }
+
+    &--active {
+      color: #f5a623;
     }
   }
 }

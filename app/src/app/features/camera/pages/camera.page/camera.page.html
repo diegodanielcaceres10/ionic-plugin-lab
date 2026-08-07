@@ -2,6 +2,9 @@
   <app-ui-header
     title="Camera"
     subtitle="Capture photos using the Capacitor Camera plugin."
+    [pluginType]="pluginInfo()?.pluginType ? 'official' : 'community'"
+    [isFavorited]="pluginInfo()?.isFavorited ?? false"
+    (favoriteToggled)="toggleFavorite()"
   />
 
   <section class="card">

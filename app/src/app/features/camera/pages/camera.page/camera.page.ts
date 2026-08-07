@@ -27,15 +27,15 @@ import {
   bookOutline,
   openOutline,
 } from 'ionicons/icons';
-import {
-  CameraService,
-  PhotoInfo,
-  BrowserNotSupportedError,
-} from '../../data/camera.service';
+import { CameraService, PhotoInfo } from '../../data/camera.service';
 import {
   PluginLogEntry,
   PluginLogsService,
 } from '../../../../core/plugin-logs/plugin-logs.service';
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
 
 type ViewState = 'idle' | 'loading' | 'captured';
 
@@ -58,10 +58,12 @@ export class CameraPage {
   state = signal<ViewState>('idle');
   photo = signal<PhotoInfo | null>(null);
   activityLog = signal<PluginLogEntry[]>([]);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
 
   constructor(
     private cameraService: CameraService,
     private alertController: AlertController,
+    private pluginsCatalogService: PluginsCatalogService,
     private pluginLogsService: PluginLogsService,
   ) {
     addIcons({
@@ -81,12 +83,26 @@ export class CameraPage {
       'book-outline': bookOutline,
       'open-outline': openOutline,
     });
+  }
+
+  async ngOnInit(): Promise<void> {
     this.refreshActivityLog();
+    const plugin = await this.pluginsCatalogService.findByName('Camera');
+    this.pluginInfo.set(plugin);
   }
 
   private async refreshActivityLog(): Promise<void> {
     const logs = await this.pluginLogsService.list('Camera');
     this.activityLog.set(logs);
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
   }
 
   /** Opens the native camera to capture a new photo. */

@@ -21,17 +21,6 @@ export interface PhotoInfo {
   mock: boolean;
 }
 
-/**
- * Thrown when running in the browser and the caller should
- * show the "try this on a mobile device" notice.
- */
-export class BrowserNotSupportedError extends Error {
-  constructor() {
-    super('The Camera plugin cannot be tested in the browser.');
-    this.name = 'BrowserNotSupportedError';
-  }
-}
-
 @Injectable({ providedIn: 'root' })
 export class CameraService {
   private platformService = inject(PlatformService);
@@ -41,7 +30,6 @@ export class CameraService {
   /**
    * Single entry point to take a photo. The page doesn't need to know
    * whether it's running on browser or native: it always calls takePhoto()
-   * and handles either the result or a BrowserNotSupportedError.
    */
   async takePhoto(): Promise<PhotoInfo> {
     return this.takeNativePhoto(CameraSource.Camera);
