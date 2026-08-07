@@ -1,10 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { SqliteService } from '../database/sqlite.service';
-import { PlatformService } from '../platform/platform.service';
-import { PLUGIN_CATALOG_SEED } from './plugins-catalog.data';
+import { PLUGIN_CATALOG_SEED, PluginSeedEntry } from './plugins-catalog.data';
+
+const TABLE = 'plugins';
 
 export interface PluginCatalogEntry {
-  id?: number;
+  id: number;
   name: string;
   category: string;
   icon: string;
@@ -18,16 +19,25 @@ export interface PluginCategoryGroup {
   plugins: PluginCatalogEntry[];
 }
 
+/** Row shape as stored in the `plugins` table (SQLite/in-memory). */
+interface PluginRow extends Record<string, unknown> {
+  id: number;
+  name: string;
+  category: string;
+  icon: string;
+  link: string | null;
+  is_tested: number;
+  is_favorited: number;
+  last_used_at: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PluginsCatalogService {
   private sqliteService = inject(SqliteService);
-  private platformService = inject(PlatformService);
-  private seeded = false;
 
   async listGroupedByCategory(): Promise<PluginCategoryGroup[]> {
-    const entries = this.platformService.isNativePlatform()
-      ? await this.listFromDb()
-      : this.listFromSeed(); // web: sin persistencia de tested/favorited
+    this.seedIfEmpty();
+    const entries: PluginCatalogEntry[] = await this.listAll();
 
     const groups = new Map<string, PluginCatalogEntry[]>();
     for (const entry of entries) {
@@ -38,31 +48,69 @@ export class PluginsCatalogService {
     return Array.from(groups, ([label, plugins]) => ({ label, plugins }));
   }
 
-  async setTested(name: string, isTested: boolean): Promise<void> {
-    if (!this.platformService.isNativePlatform()) return; // web: stays in memory only
-    const db = await this.sqliteService.getDb();
-    await db.run('UPDATE plugins SET is_tested = ? WHERE name = ?;', [
-      isTested ? 1 : 0,
-      name,
-    ]);
+  /** Returns every plugin in the catalog, unfiltered. */
+  async listAll(): Promise<PluginCatalogEntry[]> {
+    const rows = await this.sqliteService.select<PluginRow>(TABLE);
+    return rows.map(this.toEntry);
   }
 
-  async setFavorited(name: string, isFavorited: boolean): Promise<void> {
-    if (!this.platformService.isNativePlatform()) return; // web: stays in memory only
-    const db = await this.sqliteService.getDb();
-    await db.run('UPDATE plugins SET is_favorited = ? WHERE name = ?;', [
-      isFavorited ? 1 : 0,
-      name,
-    ]);
+  /**
+   * Loads PLUGIN_CATALOG_SEED into the `plugins` table, but only if it's
+   * currently empty — safe to call on every app start.
+   */
+  async seedIfEmpty(): Promise<void> {
+    const existing = await this.sqliteService.select<PluginRow>(TABLE, {
+      limit: 1,
+    });
+
+    if (existing.length > 0) return;
+
+    for (const entry of PLUGIN_CATALOG_SEED) {
+      await this.sqliteService.insert(TABLE, this.toRow(entry));
+    }
   }
 
-  private async listFromDb(): Promise<PluginCatalogEntry[]> {
-    await this.ensureSeeded();
-    const db = await this.sqliteService.getDb();
-    const result = await db.query(
-      'SELECT * FROM plugins ORDER BY category, name;',
+  /** Sets (or clears) the favorite flag for a single plugin, by id. */
+  async setFavorited(id: number, isFavorited: boolean): Promise<void> {
+    const affected = await this.sqliteService.update<PluginRow>(
+      TABLE,
+      { is_favorited: isFavorited ? 1 : 0 },
+      { id },
     );
-    return (result.values ?? []).map((row) => ({
+    if (affected === 0) {
+      throw new Error(`No plugin found with id ${id}`);
+    }
+  }
+
+  /**
+   * Marks a plugin as tested by name. One-way flag — safe to call
+   * repeatedly (e.g. every time the plugin's demo page loads), it
+   * simply stays at 1 once set.
+   */
+  async markAsTested(name: string): Promise<void> {
+    const affected = await this.sqliteService.update<PluginRow>(
+      TABLE,
+      { is_tested: 1 },
+      { name },
+    );
+    if (affected === 0) {
+      throw new Error(`No plugin found with name "${name}"`);
+    }
+  }
+
+  private toRow(entry: PluginSeedEntry): Partial<PluginRow> {
+    return {
+      name: entry.name,
+      category: entry.category,
+      icon: entry.icon,
+      link: entry.link ?? null,
+      is_tested: 0,
+      is_favorited: 0,
+    };
+  }
+
+  private toEntry(row: PluginRow): PluginCatalogEntry {
+    return {
       id: row.id,
       name: row.name,
       category: row.category,
@@ -70,37 +118,6 @@ export class PluginsCatalogService {
       link: row.link ?? undefined,
       isTested: !!row.is_tested,
       isFavorited: !!row.is_favorited,
-    }));
-  }
-
-  private listFromSeed(): PluginCatalogEntry[] {
-    return PLUGIN_CATALOG_SEED.map((seed) => ({
-      ...seed,
-      isTested: false,
-      isFavorited: false,
-    }));
-  }
-
-  /** Inserts the seed catalog once; existing rows (and their tested/favorited flags) are left untouched. */
-  private async ensureSeeded(): Promise<void> {
-    if (this.seeded) return;
-    const db = await this.sqliteService.getDb();
-    for (const plugin of PLUGIN_CATALOG_SEED) {
-      await db.run(
-        'INSERT OR IGNORE INTO plugins (name, category, icon, link) VALUES (?, ?, ?, ?);',
-        [plugin.name, plugin.category, plugin.icon, plugin.link ?? null],
-      );
-    }
-    this.seeded = true;
-  }
-
-  /** Marks a plugin as tested and bumps its last-used timestamp, in one write. */
-  async recordUsage(name: string): Promise<void> {
-    if (!this.platformService.isNativePlatform()) return; // web: nothing to persist
-    const db = await this.sqliteService.getDb();
-    await db.run(
-      "UPDATE plugins SET is_tested = 1, last_used_at = datetime('now') WHERE name = ?;",
-      [name],
-    );
+    };
   }
 }

@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
-import { PluginLog } from '../../../core/plugin-logs/plugin-logs.service';
+import { PluginLogEntry } from '../../../core/plugin-logs/plugin-logs.service';
 
 @Component({
   selector: 'app-activity-log',
@@ -11,5 +11,5 @@ import { PluginLog } from '../../../core/plugin-logs/plugin-logs.service';
   styleUrls: ['./activity-log.component.scss'],
 })
 export class ActivityLogComponent {
-  readonly entries = input.required<PluginLog[]>();
+  readonly entries = input.required<PluginLogEntry[]>();
 }

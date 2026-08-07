@@ -132,8 +132,8 @@ export class CameraService {
             : 'Unknown',
       status,
     });
-    if (status === 'success') {
-      await this.pluginsCatalogService.recordUsage('Camera');
+    if (status === 'success' || (status === 'warning' && isBrowser)) {
+      await this.pluginsCatalogService.markAsTested('Camera');
     }
   }
 

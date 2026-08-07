@@ -85,8 +85,12 @@ export class HomePage implements OnInit {
   private pluginsCatalogService = inject(PluginsCatalogService);
 
   readonly pluginCategories = signal<PluginCategoryGroup[]>([]);
+
   readonly stats = computed<StatItem[]>(() =>
     this.buildStats(this.pluginCategories()),
+  );
+  readonly pluginCategories2 = computed(() =>
+    this.pluginsCatalogService.listGroupedByCategory(),
   );
 
   constructor(
@@ -151,13 +155,20 @@ export class HomePage implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.pluginCategories.set(
-      await this.pluginsCatalogService.listGroupedByCategory(),
-    );
-
+    await this.loadPlugins();
     if (Capacitor.isNativePlatform()) {
       await this.statusBarService.setDefault();
     }
+  }
+
+  ionViewWillEnter() {
+    this.loadPlugins();
+  }
+
+  async loadPlugins() {
+    this.pluginCategories.set(
+      await this.pluginsCatalogService.listGroupedByCategory(),
+    );
   }
 
   private buildStats(groups: PluginCategoryGroup[]): StatItem[] {
@@ -207,6 +218,6 @@ export class HomePage implements OnInit {
       })),
     );
 
-    await this.pluginsCatalogService.setFavorited(plugin.name, nextValue);
+    await this.pluginsCatalogService.setFavorited(plugin.id, nextValue);
   }
 }

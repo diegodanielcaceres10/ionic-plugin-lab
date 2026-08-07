@@ -33,7 +33,7 @@ import {
   BrowserNotSupportedError,
 } from '../../data/camera.service';
 import {
-  PluginLog,
+  PluginLogEntry,
   PluginLogsService,
 } from '../../../../core/plugin-logs/plugin-logs.service';
 
@@ -57,7 +57,7 @@ type ViewState = 'idle' | 'loading' | 'captured';
 export class CameraPage {
   state = signal<ViewState>('idle');
   photo = signal<PhotoInfo | null>(null);
-  activityLog = signal<PluginLog[]>([]);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   constructor(
     private cameraService: CameraService,
@@ -85,7 +85,7 @@ export class CameraPage {
   }
 
   private async refreshActivityLog(): Promise<void> {
-    const logs = await this.pluginLogsService.listRecent('Camera');
+    const logs = await this.pluginLogsService.list('Camera');
     this.activityLog.set(logs);
   }
 
