@@ -10,7 +10,7 @@ export interface PluginCatalogEntry {
   category: string;
   icon: string;
   link?: string;
-  pluginType: boolean;
+  pluginType: string;
   isTested: boolean;
   isFavorited: boolean;
 }
@@ -128,7 +128,7 @@ export class PluginsCatalogService {
       category: row.category,
       icon: row.icon,
       link: row.link ?? undefined,
-      pluginType: !!row.plugin_type,
+      pluginType: row.plugin_type,
       isTested: !!row.is_tested,
       isFavorited: !!row.is_favorited,
     };

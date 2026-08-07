@@ -10,8 +10,8 @@ const config: CapacitorConfig = {
       iconColor: '#4F46E5',
     },
     SplashScreen: {
-      launchShowDuration: 1000,
-      launchAutoHide: true,
+      launchShowDuration: 0,
+      launchAutoHide: false,
       launchFadeOutDuration: 100,
       backgroundColor: '#ffffffff',
       androidSplashResourceName: 'splash',

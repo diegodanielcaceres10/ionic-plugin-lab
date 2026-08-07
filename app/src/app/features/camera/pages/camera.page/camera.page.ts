@@ -55,6 +55,7 @@ type ViewState = 'idle' | 'loading' | 'captured';
   styleUrls: ['./camera.page.scss'],
 })
 export class CameraPage {
+  pluginName = 'Camera';
   state = signal<ViewState>('idle');
   photo = signal<PhotoInfo | null>(null);
   activityLog = signal<PluginLogEntry[]>([]);
@@ -87,12 +88,12 @@ export class CameraPage {
 
   async ngOnInit(): Promise<void> {
     this.refreshActivityLog();
-    const plugin = await this.pluginsCatalogService.findByName('Camera');
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
     this.pluginInfo.set(plugin);
   }
 
   private async refreshActivityLog(): Promise<void> {
-    const logs = await this.pluginLogsService.list('Camera');
+    const logs = await this.pluginLogsService.list(this.pluginName);
     this.activityLog.set(logs);
   }
 
@@ -133,6 +134,13 @@ export class CameraPage {
         await this.showPermissionDeniedAlert();
         this.state.set(this.photo() ? 'captured' : 'idle');
         return;
+      } else if (
+        error instanceof Error &&
+        error.message === 'User cancelled photos app'
+      ) {
+        await this.showActionCancelByUserAlert();
+        this.state.set(this.photo() ? 'captured' : 'idle');
+        return;
       }
 
       await this.showGenericErrorAlert(error instanceof Error && error.message);
@@ -157,6 +165,15 @@ export class CameraPage {
       header: 'Permission denied',
       message:
         'We need access to the camera and the gallery to capture or pick a photo. Enable the permission from the device settings.',
+      buttons: ['Got it'],
+    });
+    await alert.present();
+  }
+
+  private async showActionCancelByUserAlert(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Action cancelled by user',
+      message: 'This action was cancelled by user.',
       buttons: ['Got it'],
     });
     await alert.present();
