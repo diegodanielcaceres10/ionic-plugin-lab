@@ -12,11 +12,11 @@
     <div class="history__row">
       <span
         class="history__dot"
-        [class]="'history__dot--' + entry.variant"
+        [class]="'history__dot--' + entry.status"
       ></span>
-      <span class="history__label">{{ entry.message }}</span>
+      <span class="history__label">{{ entry.type }}</span>
       <span class="history__time">{{
-        entry.timestamp | date: "HH:mm:ss"
+        entry.createdAt | date: "HH:mm:ss"
       }}</span>
     </div>
   }

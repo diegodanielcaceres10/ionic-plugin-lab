@@ -3,10 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
-import {
-  ActivityLogComponent,
-  ActivityLogEntry,
-} from '../../../../shared/ui/activity-log/activity-log.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import {
   IonSpinner,
   IonIcon,
@@ -60,7 +57,7 @@ type ViewState = 'idle' | 'loading' | 'captured';
 export class CameraPage {
   state = signal<ViewState>('idle');
   photo = signal<PhotoInfo | null>(null);
-  activityLog = signal<ActivityLogEntry[]>([]);
+  activityLog = signal<PluginLog[]>([]);
 
   constructor(
     private cameraService: CameraService,
@@ -89,24 +86,7 @@ export class CameraPage {
 
   private async refreshActivityLog(): Promise<void> {
     const logs = await this.pluginLogsService.listRecent('Camera');
-    this.activityLog.set(logs.map(this.toActivityEntry));
-  }
-
-  private toActivityEntry(log: PluginLog): ActivityLogEntry {
-    const labels: Record<string, string> = {
-      photo: 'Photo captured',
-      gallery: 'Photo selected from gallery',
-    };
-    return {
-      message:
-        log.status === 'success'
-          ? (labels[log.type] ?? log.type)
-          : `${labels[log.type] ?? log.type} failed`,
-      variant: log.status === 'success' ? 'success' : 'danger',
-      // SQLite's datetime('now') stores UTC without an offset marker —
-      // parse it explicitly as UTC so the browser converts it to local time.
-      timestamp: new Date(`${log.createdAt.replace(' ', 'T')}Z`),
-    };
+    this.activityLog.set(logs);
   }
 
   /** Opens the native camera to capture a new photo. */
@@ -128,16 +108,11 @@ export class CameraPage {
     try {
       const result = await action();
       this.photo.set(result);
+      if (result.mock) {
+        await this.showBrowserNotSupportedAlert();
+      }
       this.state.set('captured');
     } catch (error) {
-      if (error instanceof BrowserNotSupportedError) {
-        await this.showBrowserNotSupportedAlert();
-        // Still show the mock so the full UI flow can be previewed on browser
-        this.photo.set(this.cameraService.getMockPhoto());
-        this.state.set('captured');
-        return;
-      }
-
       if (error instanceof Error && error.message === 'PERMISSION_DENIED') {
         await this.showPermissionDeniedAlert();
         this.state.set(this.photo() ? 'captured' : 'idle');

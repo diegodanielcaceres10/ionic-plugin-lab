@@ -1,14 +1,7 @@
 import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
-
-export type ActivityLogVariant = 'success' | 'danger' | 'info';
-
-export interface ActivityLogEntry {
-  message: string;
-  variant: ActivityLogVariant;
-  timestamp: Date;
-}
+import { PluginLog } from '../../../core/plugin-logs/plugin-logs.service';
 
 @Component({
   selector: 'app-activity-log',
@@ -18,5 +11,5 @@ export interface ActivityLogEntry {
   styleUrls: ['./activity-log.component.scss'],
 })
 export class ActivityLogComponent {
-  readonly entries = input.required<ActivityLogEntry[]>();
+  readonly entries = input.required<PluginLog[]>();
 }
