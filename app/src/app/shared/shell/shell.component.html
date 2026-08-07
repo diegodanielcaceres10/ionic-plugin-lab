@@ -38,20 +38,20 @@
     <ion-label>Home</ion-label>
   </ion-tab-button>
   <ion-tab-button
-    tab="plugins"
-    routerLink="/plugins"
-    [selected]="activePage() === 'recent'"
-  >
-    <ion-icon name="apps-outline"></ion-icon>
-    <ion-label>Plugins</ion-label>
-  </ion-tab-button>
-  <ion-tab-button
     tab="favorites"
     routerLink="/favorites"
     [selected]="activePage() === 'favorites'"
   >
     <ion-icon name="star-outline"></ion-icon>
     <ion-label>Favorites</ion-label>
+  </ion-tab-button>
+  <ion-tab-button
+    tab="plugins"
+    routerLink="/plugins"
+    [selected]="activePage() === 'recent'"
+  >
+    <ion-icon name="time-outline"></ion-icon>
+    <ion-label>Recents</ion-label>
   </ion-tab-button>
   <ion-tab-button
     tab="settings"

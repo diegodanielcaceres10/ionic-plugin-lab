@@ -30,29 +30,42 @@
   </section>
 
   <section class="stats">
-    <div class="stat__item" *ngFor="let stat of stats">
+    <div class="stat__item" *ngFor="let stat of stats()">
       <ion-icon [name]="stat.icon" [color]="stat.color"></ion-icon>
       <span class="stat__value">{{ stat.value }}</span>
       <span class="stat__label">{{ stat.label }}</span>
     </div>
   </section>
 
-  <section class="plugins" *ngFor="let category of pluginCategories">
+  <section class="plugins" *ngFor="let category of pluginCategories()">
     <div class="plugins__header">
       <h2>{{ category.label }}</h2>
     </div>
     <div class="plugins__grid">
-      <button
+      <div
         class="plugins__card"
         [class.plugins__card--pending]="!plugin.link"
         *ngFor="let plugin of category.plugins"
+        role="button"
+        tabindex="0"
         (click)="onPluginTap(plugin)"
+        (keydown.enter)="onPluginTap(plugin)"
       >
+        <button
+          class="plugins__favorite"
+          [class.plugins__favorite--active]="plugin.isFavorited"
+          (click)="onFavoriteTap(plugin, $event)"
+        >
+          <ion-icon
+            [name]="plugin.isFavorited ? 'star' : 'star-outline'"
+          ></ion-icon>
+        </button>
+
         <div class="plugins__icon" [class.plugins__icon-pending]="!plugin.link">
           <ion-icon [name]="plugin.icon"></ion-icon>
         </div>
-        <span class="plugins__label">{{ plugin.label }}</span>
-      </button>
+        <span class="plugins__label">{{ plugin.name }}</span>
+      </div>
     </div>
   </section>
 </app-shell>

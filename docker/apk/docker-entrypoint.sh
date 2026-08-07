@@ -6,8 +6,6 @@ set -e
 ANDROID_DIR="android"
 APK_SRC="$ANDROID_DIR/app/build/outputs/apk/debug/app-debug.apk"
 DIST_DIR="dist"
-TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
-APK_DEST="$DIST_DIR/app-debug-$TIMESTAMP.apk"
 
 # ---- Build web assets ----
 echo "⚙️ Building Ionic app..."
@@ -30,6 +28,8 @@ if [ ! -f "$APK_SRC" ]; then
   exit 1
 fi
 
+TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+APK_DEST="$DIST_DIR/app-debug-$TIMESTAMP.apk"
 mkdir -p "$DIST_DIR"
 mv "$APK_SRC" "$APK_DEST"
 echo "✅ APK exported to $APK_DEST"

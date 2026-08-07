@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
@@ -36,6 +36,7 @@ import {
   chevronForwardOutline,
   homeOutline,
   gridOutline,
+  star,
   starOutline,
   earthOutline,
   moveOutline,
@@ -60,23 +61,17 @@ import {
   calendarOutline,
 } from 'ionicons/icons';
 import { StatusBarService } from '../../../status-bar/data/status-bar.service';
+import {
+  PluginCatalogEntry,
+  PluginCategoryGroup,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
 
 interface StatItem {
   icon: string;
   value: number;
   label: string;
   color: string;
-}
-
-interface PluginItem {
-  icon: string;
-  label: string;
-  link?: string;
-}
-
-interface PluginCategory {
-  label: string;
-  plugins: PluginItem[];
 }
 
 @Component({
@@ -87,121 +82,12 @@ interface PluginCategory {
   styleUrls: ['./home.page.scss'],
 })
 export class HomePage implements OnInit {
-  stats: StatItem[] = [
-    { icon: 'cube-outline', value: 36, label: 'Plugins', color: 'primary' },
-    {
-      icon: 'checkmark-circle-outline',
-      value: 0,
-      label: 'Tested',
-      color: 'success',
-    },
-    {
-      icon: 'code-slash-outline',
-      value: 0,
-      label: 'Favorites',
-      color: 'tertiary',
-    },
-    { icon: 'time-outline', value: 0, label: 'Recent', color: 'warning' },
-  ];
-  pluginCategories: PluginCategory[] = [
-    {
-      label: 'Media & Scanning',
-      plugins: [
-        { icon: 'camera-outline', label: 'Camera', link: 'camera' },
-        {
-          icon: 'barcode-outline',
-          label: 'Barcode Scanner',
-          link: 'barcode-scanner',
-        },
-      ],
-    },
-    {
-      label: 'Location & Maps',
-      plugins: [
-        { icon: 'location-outline', label: 'Geolocation', link: 'geolocation' },
-        { icon: 'locate-outline', label: 'Background Geolocation' },
-        { icon: 'earth-outline', label: 'Google Maps' },
-      ],
-    },
-    {
-      label: 'Device & Sensors',
-      plugins: [
-        { icon: 'phone-portrait-outline', label: 'Device', link: 'device' },
-        { icon: 'phone-portrait-outline', label: 'Haptics', link: 'haptics' },
-        { icon: 'wifi-outline', label: 'Network', link: 'network' },
-        { icon: 'move-outline', label: 'Motion', link: 'motion' },
-      ],
-    },
-    {
-      label: 'Storage & Files',
-      plugins: [
-        { icon: 'folder-outline', label: 'Filesystem', link: 'filesystem' },
-        { icon: 'options-outline', label: 'Preferences' },
-        { icon: 'server-outline', label: 'SQLite' },
-        { icon: 'document-attach-outline', label: 'File Picker' },
-        { icon: 'swap-vertical-outline', label: 'File Transfer' },
-        { icon: 'eye-outline', label: 'File Viewer' },
-        { icon: 'file-tray-stacked-outline', label: 'Cookies' },
-      ],
-    },
-    {
-      label: 'UI & System Bars',
-      plugins: [
-        { icon: 'stats-chart-outline', label: 'StatusBar', link: 'status-bar' },
-      ],
-    },
-    {
-      label: 'Web & Connectivity',
-      plugins: [
-        { icon: 'globe-outline', label: 'Browser', link: 'browser' },
-        { icon: 'open-outline', label: 'InAppBrowser' },
-        { icon: 'rocket-outline', label: 'App Launcher' },
-      ],
-    },
-    {
-      label: 'Notifications',
-      plugins: [
-        {
-          icon: 'notifications-outline',
-          label: 'Local Notifications',
-          link: 'local-notifications',
-        },
-        { icon: 'paper-plane-outline', label: 'Push Notifications' },
-      ],
-    },
-    {
-      label: 'Sharing & Clipboard',
-      plugins: [
-        { icon: 'share-social-outline', label: 'Share', link: 'share' },
-        { icon: 'clipboard-outline', label: 'Clipboard', link: 'clipboard' },
-      ],
-    },
-    {
-      label: 'Wireless & Security',
-      plugins: [
-        { icon: 'radio-outline', label: 'NFC', link: 'nfc' },
-        { icon: 'bluetooth-outline', label: 'Bluetooth LE', link: 'bluetooth' },
-        {
-          icon: 'finger-print-outline',
-          label: 'Biometrics',
-          link: 'biometrics',
-        },
-      ],
-    },
-    {
-      label: 'App Core',
-      plugins: [{ icon: 'apps-outline', label: 'App' }],
-    },
-    {
-      label: 'Experimental',
-      plugins: [
-        { icon: 'terminal-outline', label: 'Background Runner' },
-        { icon: 'hardware-chip-outline', label: 'Local LLM' },
-        { icon: 'people-outline', label: 'Contacts' },
-        { icon: 'calendar-outline', label: 'Calendar' },
-      ],
-    },
-  ];
+  private pluginsCatalogService = inject(PluginsCatalogService);
+
+  readonly pluginCategories = signal<PluginCategoryGroup[]>([]);
+  readonly stats = computed<StatItem[]>(() =>
+    this.buildStats(this.pluginCategories()),
+  );
 
   constructor(
     private statusBarService: StatusBarService,
@@ -238,6 +124,7 @@ export class HomePage implements OnInit {
       'chevron-forward-outline': chevronForwardOutline,
       'home-outline': homeOutline,
       'grid-outline': gridOutline,
+      star: star,
       'star-outline': starOutline,
       'earth-outline': earthOutline,
       'move-outline': moveOutline,
@@ -264,18 +151,62 @@ export class HomePage implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.pluginCategories.set(
+      await this.pluginsCatalogService.listGroupedByCategory(),
+    );
+
     if (Capacitor.isNativePlatform()) {
-      await this.delay(5000);
       await this.statusBarService.setDefault();
     }
   }
 
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  private buildStats(groups: PluginCategoryGroup[]): StatItem[] {
+    const all = groups.flatMap((g) => g.plugins);
+    return [
+      {
+        icon: 'cube-outline',
+        value: all.length,
+        label: 'Plugins',
+        color: 'primary',
+      },
+      {
+        icon: 'checkmark-circle-outline',
+        value: all.filter((p) => p.isTested).length,
+        label: 'Tested',
+        color: 'success',
+      },
+      {
+        icon: 'code-slash-outline',
+        value: all.filter((p) => p.isFavorited).length,
+        label: 'Favorites',
+        color: 'tertiary',
+      },
+      { icon: 'time-outline', value: 0, label: 'Recent', color: 'warning' },
+    ];
   }
-  onPluginTap(plugin: PluginItem): void {
+
+  onPluginTap(plugin: PluginCatalogEntry): void {
     if (plugin.link) {
       this.router.navigateByUrl(plugin.link);
     }
+  }
+
+  async onFavoriteTap(plugin: PluginCatalogEntry, event: Event): Promise<void> {
+    event.stopPropagation(); // prevent the parent div's onPluginTap from firing
+
+    const nextValue = !plugin.isFavorited;
+
+    // Optimistic update: since pluginCategories is a signal, the stats()
+    // computed recalculates on its own.
+    this.pluginCategories.update((groups) =>
+      groups.map((group) => ({
+        ...group,
+        plugins: group.plugins.map((p) =>
+          p.name === plugin.name ? { ...p, isFavorited: nextValue } : p,
+        ),
+      })),
+    );
+
+    await this.pluginsCatalogService.setFavorited(plugin.name, nextValue);
   }
 }
