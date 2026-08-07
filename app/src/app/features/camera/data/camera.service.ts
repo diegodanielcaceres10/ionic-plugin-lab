@@ -122,9 +122,13 @@ export class CameraService {
       type: isBrowser
         ? 'Photo simulated'
         : source === CameraSource.Camera
-          ? 'Photo captured'
+          ? status === 'danger'
+            ? 'Photo captured failed'
+            : 'Photo captured'
           : source === CameraSource.Photos
-            ? 'Photo selected from gallery'
+            ? status === 'danger'
+              ? 'Photo selected from gallery failed'
+              : 'Photo selected from gallery'
             : 'Unknown',
       status,
     });

@@ -119,7 +119,7 @@ export class CameraPage {
         return;
       }
 
-      await this.showGenericErrorAlert();
+      await this.showGenericErrorAlert(error instanceof Error && error.message);
       this.state.set(this.photo() ? 'captured' : 'idle');
     } finally {
       await this.refreshActivityLog();
@@ -146,10 +146,10 @@ export class CameraPage {
     await alert.present();
   }
 
-  private async showGenericErrorAlert(): Promise<void> {
+  private async showGenericErrorAlert(error: any): Promise<void> {
     const alert = await this.alertController.create({
       header: 'Something went wrong',
-      message: "We couldn't complete the operation. Please try again.",
+      message: error || "We couldn't complete the operation. Please try again.",
       buttons: ['Close'],
     });
     await alert.present();
