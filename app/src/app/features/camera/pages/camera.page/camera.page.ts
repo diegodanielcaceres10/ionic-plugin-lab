@@ -103,7 +103,9 @@ export class CameraPage {
           ? (labels[log.type] ?? log.type)
           : `${labels[log.type] ?? log.type} failed`,
       variant: log.status === 'success' ? 'success' : 'danger',
-      timestamp: new Date(log.createdAt),
+      // SQLite's datetime('now') stores UTC without an offset marker —
+      // parse it explicitly as UTC so the browser converts it to local time.
+      timestamp: new Date(`${log.createdAt.replace(' ', 'T')}Z`),
     };
   }
 
