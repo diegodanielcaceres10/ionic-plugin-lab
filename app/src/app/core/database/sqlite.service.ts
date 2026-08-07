@@ -25,6 +25,7 @@ const SCHEMA_STATEMENTS: string[] = [
      id INTEGER PRIMARY KEY AUTOINCREMENT,
      plugin TEXT NOT NULL,
      type TEXT NOT NULL,
+     message TEXT NOT NULL,
      status TEXT NOT NULL,
      created_at TEXT NOT NULL DEFAULT (datetime('now'))
    );`,

@@ -65,7 +65,7 @@ export class CameraService {
   private async takeNativePhoto(source: CameraSource): Promise<PhotoInfo> {
     try {
       if (!this.platformService.isNativePlatform()) {
-        await this.saveLog(source, 'warning', true);
+        await this.saveLog(source, 'Photo simulated', 'warning');
         return {
           webPath: 'assets/mock/sample-photo.jpg',
           format: 'JPEG',
@@ -93,7 +93,15 @@ export class CameraService {
         this.readDimensions(photo.webPath),
         this.readFileSizeLabel(photo.webPath),
       ]);
-      await this.saveLog(source, 'success');
+      await this.saveLog(
+        source,
+        source === CameraSource.Camera
+          ? 'Photo captured'
+          : source === CameraSource.Photos
+            ? 'Photo selected from gallery'
+            : 'Unknown',
+        'success',
+      );
 
       return {
         webPath: photo.webPath,
@@ -106,33 +114,28 @@ export class CameraService {
         mock: false,
       };
     } catch (error) {
-      await this.saveLog(source, 'danger');
+      await this.saveLog(
+        source,
+        (error instanceof Error && error.message) || 'Unknown',
+        'danger',
+      );
       throw error;
     }
   }
 
   /** Writes the activity log entry and, on success, marks Camera as tested/recently used. */
   private async saveLog(
-    source: CameraSource,
+    type: string,
+    message: string,
     status: 'success' | 'warning' | 'danger',
-    isBrowser: boolean = false,
   ): Promise<void> {
     await this.pluginLogsService.add({
       plugin: 'Camera',
-      type: isBrowser
-        ? 'Photo simulated'
-        : source === CameraSource.Camera
-          ? status === 'danger'
-            ? 'Photo captured failed'
-            : 'Photo captured'
-          : source === CameraSource.Photos
-            ? status === 'danger'
-              ? 'Photo selected from gallery failed'
-              : 'Photo selected from gallery'
-            : 'Unknown',
+      type,
+      message,
       status,
     });
-    if (status === 'success' || (status === 'warning' && isBrowser)) {
+    if (status !== 'danger') {
       await this.pluginsCatalogService.markAsTested('Camera');
     }
   }

@@ -7,6 +7,7 @@ export interface PluginLogEntry {
   id?: number;
   plugin: string;
   type: string;
+  message: string;
   status: string;
   createdAt: string;
 }
@@ -15,6 +16,7 @@ interface PluginLogRow extends Record<string, unknown> {
   id: number;
   plugin: string;
   type: string;
+  message: string;
   status: string;
   created_at: string;
 }
@@ -28,6 +30,7 @@ export class PluginLogsService {
     await this.sqliteService.insert<PluginLogRow>(TABLE, {
       plugin: entry.plugin,
       type: entry.type,
+      message: entry.message,
       status: entry.status,
       created_at: new Date().toISOString(),
     });
@@ -47,6 +50,7 @@ export class PluginLogsService {
       id: row.id,
       plugin: row.plugin,
       type: row.type,
+      message: row.message,
       status: row.status,
       createdAt: row.created_at,
     };
