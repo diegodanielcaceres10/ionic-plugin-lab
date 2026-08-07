@@ -27,7 +27,10 @@ export class PluginLogsService {
     );
   }
 
-  async list(filters: PluginLogFilters = {}): Promise<PluginLog[]> {
+  async list(
+    filters: PluginLogFilters = {},
+    limit?: number,
+  ): Promise<PluginLog[]> {
     const db = await this.sqliteService.getDb();
     const conditions: string[] = [];
     const params: string[] = [];
@@ -46,11 +49,17 @@ export class PluginLogsService {
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const limitClause = limit ? `LIMIT ${limit}` : '';
     const result = await db.query(
-      `SELECT * FROM plugin_logs ${where} ORDER BY created_at DESC;`,
+      `SELECT * FROM plugin_logs ${where} ORDER BY created_at DESC ${limitClause};`,
       params,
     );
     return (result.values ?? []).map(this.mapRow);
+  }
+
+  /** Shortcut used by each plugin page to show its own Activity Log widget. */
+  listRecent(plugin: string, limit = 5): Promise<PluginLog[]> {
+    return this.list({ plugin }, limit);
   }
 
   private mapRow(row: {

@@ -1,0 +1,73 @@
+.history {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+
+    ion-icon {
+      font-size: 1.2rem;
+      color: var(--ion-color-primary);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+
+    &:first-of-type {
+      border-top: none;
+    }
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &--success {
+      background: var(--ion-color-success, #2dd36f);
+    }
+
+    &--danger {
+      background: var(--ion-color-danger, #eb445a);
+    }
+
+    &--info {
+      background: var(--ion-color-medium, #92949c);
+    }
+  }
+
+  &__label {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--ion-color-dark, #1a1a2e);
+  }
+
+  &__time {
+    font-size: 0.78rem;
+    color: var(--ion-color-medium);
+  }
+
+  &__empty {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+  }
+}

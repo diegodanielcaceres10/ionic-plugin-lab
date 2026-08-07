@@ -142,16 +142,4 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     link: 'biometrics',
   },
   { name: 'App', category: 'App Core', icon: 'apps-outline' },
-  {
-    name: 'Background Runner',
-    category: 'Experimental',
-    icon: 'terminal-outline',
-  },
-  {
-    name: 'Local LLM',
-    category: 'Experimental',
-    icon: 'hardware-chip-outline',
-  },
-  { name: 'Contacts', category: 'Experimental', icon: 'people-outline' },
-  { name: 'Calendar', category: 'Experimental', icon: 'calendar-outline' },
 ];

@@ -9,7 +9,7 @@ DIST_DIR="dist"
 
 # ---- Build web assets ----
 echo "⚙️ Building Ionic app..."
-ionic build
+ionic build --debug
 
 # ---- Sync web assets and plugins into the native Android project ----
 echo "🔄 Syncing with Capacitor Android..."

@@ -12,13 +12,14 @@ const DB_VERSION = 1;
 /** Append new statements here on future schema changes — never edit a shipped one. */
 const SCHEMA_STATEMENTS: string[] = [
   `CREATE TABLE IF NOT EXISTS plugins (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
-     name TEXT NOT NULL UNIQUE,
-     category TEXT NOT NULL,
-     icon TEXT NOT NULL,
-     link TEXT,
-     is_tested INTEGER NOT NULL DEFAULT 0,
-     is_favorited INTEGER NOT NULL DEFAULT 0
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    category TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    link TEXT,
+    is_tested INTEGER NOT NULL DEFAULT 0,
+    is_favorited INTEGER NOT NULL DEFAULT 0,
+    last_used_at TEXT
    );`,
   `CREATE TABLE IF NOT EXISTS plugin_logs (
      id INTEGER PRIMARY KEY AUTOINCREMENT,

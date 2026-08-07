@@ -6,6 +6,8 @@ import {
   Photo,
 } from '@capacitor/camera';
 import { PlatformService } from '../../../core/platform/platform.service';
+import { PluginLogsService } from '../../../core/plugin-logs/plugin-logs.service';
+import { PluginsCatalogService } from '../../../core/plugins-catalog/plugins-catalog.service';
 
 export interface PhotoInfo {
   /** URL usable in an <img> (webPath on native, or the mock asset on browser) */
@@ -32,6 +34,8 @@ export class BrowserNotSupportedError extends Error {
 @Injectable({ providedIn: 'root' })
 export class CameraService {
   private platformService = inject(PlatformService);
+  private pluginLogsService = inject(PluginLogsService);
+  private pluginsCatalogService = inject(PluginsCatalogService);
 
   /**
    * Single entry point to take a photo. The page doesn't need to know
@@ -39,35 +43,14 @@ export class CameraService {
    * and handles either the result or a BrowserNotSupportedError.
    */
   async takePhoto(): Promise<PhotoInfo> {
-    if (!this.platformService.isNativePlatform()) {
-      // On browser we don't attempt to open anything: we throw right away
-      // and let the page decide how to show the alert.
-      throw new BrowserNotSupportedError();
-    }
-    return this.takeNativePhoto(CameraSource.Camera);
+    return this.takeNativePhoto(CameraSource.Camera, 'photo');
   }
 
   /**
    * Opens the native gallery/photo picker to select an existing image.
    */
   async pickFromGallery(): Promise<PhotoInfo> {
-    if (!this.platformService.isNativePlatform()) {
-      throw new BrowserNotSupportedError();
-    }
-    return this.takeNativePhoto(CameraSource.Photos);
-  }
-
-  /** Fixed sample data used to preview the full flow on browser */
-  getMockPhoto(): PhotoInfo {
-    return {
-      webPath: 'assets/mock/sample-photo.jpg',
-      format: 'JPEG',
-      width: 4032,
-      height: 3024,
-      fileSizeLabel: '2.48 MB',
-      filePath: 'file://.../IMG_20260803_1234.jpg',
-      savedLabel: 'Just now',
-    };
+    return this.takeNativePhoto(CameraSource.Photos, 'gallery');
   }
 
   // ---------------------------------------------------------------
@@ -78,33 +61,59 @@ export class CameraService {
    * Requests permissions, opens the native camera/gallery, and reads back
    * the resulting photo's real dimensions and file size.
    */
-  private async takeNativePhoto(source: CameraSource): Promise<PhotoInfo> {
-    await this.ensurePermissions();
+  private async takeNativePhoto(
+    source: CameraSource,
+    type: 'photo' | 'gallery',
+  ): Promise<PhotoInfo> {
+    try {
+      if (!this.platformService.isNativePlatform()) {
+        // On browser we don't attempt to open anything: we throw right away
+        // and let the page decide how to show the alert.
+        throw new BrowserNotSupportedError();
+      }
+      await this.ensurePermissions();
 
-    const photo: Photo = await Camera.getPhoto({
-      quality: 90,
-      resultType: CameraResultType.Uri,
-      source,
-    });
+      const photo: Photo = await Camera.getPhoto({
+        quality: 90,
+        resultType: CameraResultType.Uri,
+        source,
+      });
 
-    if (!photo.webPath) {
-      throw new Error('Could not retrieve the captured photo.');
+      if (!photo.webPath) {
+        throw new Error('Could not retrieve the captured photo.');
+      }
+
+      const [dimensions, fileSizeLabel] = await Promise.all([
+        this.readDimensions(photo.webPath),
+        this.readFileSizeLabel(photo.webPath),
+      ]);
+
+      await this.logResult(type, 'success');
+
+      return {
+        webPath: photo.webPath,
+        format: (photo.format ?? 'jpeg').toUpperCase(),
+        width: dimensions?.width,
+        height: dimensions?.height,
+        fileSizeLabel,
+        filePath: photo.path ?? photo.webPath,
+        savedLabel: 'Just now',
+      };
+    } catch (error) {
+      await this.logResult(type, 'error');
+      throw error;
     }
+  }
 
-    const [dimensions, fileSizeLabel] = await Promise.all([
-      this.readDimensions(photo.webPath),
-      this.readFileSizeLabel(photo.webPath),
-    ]);
-
-    return {
-      webPath: photo.webPath,
-      format: (photo.format ?? 'jpeg').toUpperCase(),
-      width: dimensions?.width,
-      height: dimensions?.height,
-      fileSizeLabel,
-      filePath: photo.path ?? photo.webPath,
-      savedLabel: 'Just now',
-    };
+  /** Writes the activity log entry and, on success, marks Camera as tested/recently used. */
+  private async logResult(
+    type: 'photo' | 'gallery',
+    status: 'success' | 'error',
+  ): Promise<void> {
+    await this.pluginLogsService.add({ plugin: 'Camera', type, status });
+    if (status === 'success') {
+      await this.pluginsCatalogService.recordUsage('Camera');
+    }
   }
 
   /** Explicitly requests camera and gallery permissions before opening either. */
@@ -155,5 +164,18 @@ export class CameraService {
     } catch {
       return undefined;
     }
+  }
+
+  /** Fixed sample data used to preview the full flow on browser */
+  getMockPhoto(): PhotoInfo {
+    return {
+      webPath: 'assets/mock/sample-photo.jpg',
+      format: 'JPEG',
+      width: 4032,
+      height: 3024,
+      fileSizeLabel: '2.48 MB',
+      filePath: 'file://.../IMG_20260803_1234.jpg',
+      savedLabel: 'Just now',
+    };
   }
 }

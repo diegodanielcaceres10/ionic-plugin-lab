@@ -1,8 +1,12 @@
 import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
-import { CommonModule } from '@angular/common';
+import {
+  ActivityLogComponent,
+  ActivityLogEntry,
+} from '../../../../shared/ui/activity-log/activity-log.component';
 import {
   IonSpinner,
   IonIcon,
@@ -31,6 +35,10 @@ import {
   PhotoInfo,
   BrowserNotSupportedError,
 } from '../../data/camera.service';
+import {
+  PluginLog,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 type ViewState = 'idle' | 'loading' | 'captured';
 
@@ -38,10 +46,11 @@ type ViewState = 'idle' | 'loading' | 'captured';
   selector: 'app-camera',
   standalone: true,
   imports: [
-    ShellComponent,
     CommonModule,
+    ShellComponent,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonSpinner,
     IonIcon,
   ],
@@ -51,10 +60,12 @@ type ViewState = 'idle' | 'loading' | 'captured';
 export class CameraPage {
   state = signal<ViewState>('idle');
   photo = signal<PhotoInfo | null>(null);
+  activityLog = signal<ActivityLogEntry[]>([]);
 
   constructor(
     private cameraService: CameraService,
     private alertController: AlertController,
+    private pluginLogsService: PluginLogsService,
   ) {
     addIcons({
       'chevron-back-outline': chevronBackOutline,
@@ -73,6 +84,27 @@ export class CameraPage {
       'book-outline': bookOutline,
       'open-outline': openOutline,
     });
+    this.refreshActivityLog();
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.listRecent('Camera');
+    this.activityLog.set(logs.map(this.toActivityEntry));
+  }
+
+  private toActivityEntry(log: PluginLog): ActivityLogEntry {
+    const labels: Record<string, string> = {
+      photo: 'Photo captured',
+      gallery: 'Photo selected from gallery',
+    };
+    return {
+      message:
+        log.status === 'success'
+          ? (labels[log.type] ?? log.type)
+          : `${labels[log.type] ?? log.type} failed`,
+      variant: log.status === 'success' ? 'success' : 'danger',
+      timestamp: new Date(log.createdAt),
+    };
   }
 
   /** Opens the native camera to capture a new photo. */
@@ -112,6 +144,8 @@ export class CameraPage {
 
       await this.showGenericErrorAlert();
       this.state.set(this.photo() ? 'captured' : 'idle');
+    } finally {
+      await this.refreshActivityLog();
     }
   }
 

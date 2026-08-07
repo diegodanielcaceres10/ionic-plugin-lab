@@ -93,4 +93,14 @@ export class PluginsCatalogService {
     }
     this.seeded = true;
   }
+
+  /** Marks a plugin as tested and bumps its last-used timestamp, in one write. */
+  async recordUsage(name: string): Promise<void> {
+    if (!this.platformService.isNativePlatform()) return; // web: nothing to persist
+    const db = await this.sqliteService.getDb();
+    await db.run(
+      "UPDATE plugins SET is_tested = 1, last_used_at = datetime('now') WHERE name = ?;",
+      [name],
+    );
+  }
 }
