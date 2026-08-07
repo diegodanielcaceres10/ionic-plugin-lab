@@ -1,8 +1,8 @@
 {
-  "name": "app",
-  "version": "0.0.1",
-  "author": "Ionic Framework",
-  "homepage": "https://ionicframework.com/",
+  "name": "Ionic Plugin Lab",
+  "version": "1.0.0",
+  "author": "Diego Daniel Caceres",
+  "homepage": "https://github.com/diegodanielcaceres10/ionic-plugin-lab",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -78,5 +78,5 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.9.0"
   },
-  "description": "An Ionic project"
+  "description": "A playground for testing Ionic and Capacitor plugins with Angular. Includes real-world examples, native feature demos, and reusable implementations for Android, iOS, and Web."
 }
