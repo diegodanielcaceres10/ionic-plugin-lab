@@ -51,6 +51,7 @@
         (click)="onPluginTap(plugin)"
         (keydown.enter)="onPluginTap(plugin)"
       >
+        @if (plugin.link) {
         <button
           class="plugins__favorite"
           [class.plugins__favorite--active]="plugin.isFavorited"
@@ -60,6 +61,7 @@
             [name]="plugin.isFavorited ? 'star' : 'star-outline'"
           ></ion-icon>
         </button>
+        }
 
         <div class="plugins__icon" [class.plugins__icon-pending]="!plugin.link">
           <ion-icon [name]="plugin.icon"></ion-icon>

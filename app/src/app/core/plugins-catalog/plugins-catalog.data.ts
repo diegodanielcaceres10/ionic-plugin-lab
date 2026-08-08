@@ -19,7 +19,7 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     category: 'Media & Scanning',
     icon: 'barcode-outline',
     link: 'barcode-scanner',
-    pluginType: 'community', // @capacitor-mlkit/barcode-scanning
+    pluginType: 'community',
   },
   {
     name: 'Geolocation',
@@ -32,15 +32,13 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     name: 'Background Geolocation',
     category: 'Location & Maps',
     icon: 'locate-outline',
-    link: 'background-geolocation',
-    pluginType: 'community', // no está en tus deps aún (ej. @capacitor-community/background-geolocation)
+    pluginType: 'community',
   },
   {
     name: 'Google Maps',
     category: 'Location & Maps',
     icon: 'earth-outline',
-    link: 'google-maps',
-    pluginType: 'official', // @capacitor/google-maps; en package.json usás leaflet en su lugar
+    pluginType: 'official',
   },
   {
     name: 'Device',
@@ -81,43 +79,31 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     name: 'Preferences',
     category: 'Storage & Files',
     icon: 'options-outline',
-    link: 'preferences',
-    pluginType: 'official', // @capacitor/preferences; no está en tus deps aún
-  },
-  {
-    name: 'SQLite',
-    category: 'Storage & Files',
-    icon: 'server-outline',
-    link: 'sqlite',
-    pluginType: 'community', // @capacitor-community/sqlite
+    pluginType: 'official',
   },
   {
     name: 'File Picker',
     category: 'Storage & Files',
     icon: 'document-attach-outline',
-    link: 'file-picker',
-    pluginType: 'community', // no está en tus deps aún (ej. @capawesome/capacitor-file-picker)
+    pluginType: 'community',
   },
   {
     name: 'File Transfer',
     category: 'Storage & Files',
     icon: 'swap-vertical-outline',
-    link: 'file-transfer',
-    pluginType: 'community', // no está en tus deps aún
+    pluginType: 'community',
   },
   {
     name: 'File Viewer',
     category: 'Storage & Files',
     icon: 'eye-outline',
-    link: 'file-viewer',
-    pluginType: 'community', // no está en tus deps aún
+    pluginType: 'community',
   },
   {
     name: 'Cookies',
     category: 'Storage & Files',
     icon: 'file-tray-stacked-outline',
-    link: 'cookies',
-    pluginType: 'community', // no está en tus deps aún
+    pluginType: 'community',
   },
   {
     name: 'StatusBar',
@@ -137,15 +123,13 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     name: 'InAppBrowser',
     category: 'Web & Connectivity',
     icon: 'open-outline',
-    link: 'in-app-browser',
-    pluginType: 'community', // no está en tus deps aún
+    pluginType: 'community',
   },
   {
     name: 'App Launcher',
     category: 'Web & Connectivity',
     icon: 'rocket-outline',
-    link: 'app-launcher',
-    pluginType: 'official', // @capacitor/app-launcher; no está en tus deps aún
+    pluginType: 'official',
   },
   {
     name: 'Local Notifications',
@@ -158,8 +142,7 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     name: 'Push Notifications',
     category: 'Notifications',
     icon: 'paper-plane-outline',
-    link: 'push-notifications',
-    pluginType: 'official', // @capacitor/push-notifications; no está en tus deps aún
+    pluginType: 'official',
   },
   {
     name: 'Share',
@@ -180,27 +163,26 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     category: 'Wireless & Security',
     icon: 'radio-outline',
     link: 'nfc',
-    pluginType: 'community', // @capgo/capacitor-nfc
+    pluginType: 'community',
   },
   {
     name: 'Bluetooth LE',
     category: 'Wireless & Security',
     icon: 'bluetooth-outline',
     link: 'bluetooth',
-    pluginType: 'community', // @capacitor-community/bluetooth-le
+    pluginType: 'community',
   },
   {
     name: 'Biometrics',
     category: 'Wireless & Security',
     icon: 'finger-print-outline',
     link: 'biometrics',
-    pluginType: 'community', // @aparajita/capacitor-biometric-auth
+    pluginType: 'community',
   },
   {
     name: 'App',
     category: 'App Core',
     icon: 'apps-outline',
-    link: 'app',
     pluginType: 'official',
   },
 ];
