@@ -1,8 +1,9 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -26,18 +27,14 @@ import {
   QUICK_LINKS,
   DEFAULT_URL,
 } from '../../data/browser.service';
-
-type BannerVariant = 'info' | 'success' | 'danger' | 'disabled';
-type LogVariant = 'success' | 'danger' | 'info';
-
-interface LogEntry {
-  message: string;
-  variant: LogVariant;
-  timestamp: number;
-}
-
-/** How many entries to keep in the "Activity Log" list. */
-const LOG_LIMIT = 5;
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 @Component({
   selector: 'app-browser',
@@ -47,25 +44,32 @@ const LOG_LIMIT = 5;
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonIcon,
   ],
   templateUrl: './browser.page.html',
   styleUrls: ['./browser.page.scss'],
 })
 export class BrowserPage implements OnInit, OnDestroy {
+  pluginName = 'Browser';
   isBusy = signal(false);
   isBrowserEnv = signal(false);
   isOpen = signal(false);
   activeUrl = signal<string | null>(null);
   customUrl = signal(DEFAULT_URL);
-  log = signal<LogEntry[]>([]);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   readonly quickLinks: QuickLink[] = QUICK_LINKS;
 
   private finishedHandle: PluginListenerHandle | null = null;
   private loadedHandle: PluginListenerHandle | null = null;
 
-  constructor(private browserService: BrowserService) {
+  constructor(
+    private browserService: BrowserService,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
+  ) {
     addIcons({
       'globe-outline': globeOutline,
       'help-circle-outline': helpCircleOutline,
@@ -88,12 +92,30 @@ export class BrowserPage implements OnInit, OnDestroy {
 
     this.finishedHandle = await this.browserService.onFinished(() => {
       this.isOpen.set(false);
-      this.pushLog('Browser closed', 'info');
+      void this.refreshActivityLog();
     });
 
     this.loadedHandle = await this.browserService.onPageLoaded(() => {
-      this.pushLog('Page loaded', 'success');
+      void this.refreshActivityLog();
     });
+
+    this.refreshActivityLog();
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
   }
 
   async open(url: string): Promise<void> {
@@ -101,7 +123,6 @@ export class BrowserPage implements OnInit, OnDestroy {
       await this.browserService.open(url);
       this.isOpen.set(true);
       this.activeUrl.set(url);
-      this.pushLog(`Opened ${url}`, 'success');
     });
   }
 
@@ -113,7 +134,6 @@ export class BrowserPage implements OnInit, OnDestroy {
     await this.run(async () => {
       await this.browserService.close();
       this.isOpen.set(false);
-      this.pushLog('Browser closed manually', 'info');
     });
   }
 
@@ -127,21 +147,17 @@ export class BrowserPage implements OnInit, OnDestroy {
     return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   }
 
-  /** Shared wrapper: toggles the busy state and turns unexpected failures into a log entry. */
+  /** Shared wrapper: toggles the busy state and refreshes the log — the service already logs each outcome. */
   private async run(action: () => Promise<void>): Promise<void> {
     this.isBusy.set(true);
     try {
       await action();
     } catch {
-      this.pushLog('Something went wrong', 'danger');
+      // already logged by BrowserService
     } finally {
       this.isBusy.set(false);
+      await this.refreshActivityLog();
     }
-  }
-
-  private pushLog(message: string, variant: LogVariant): void {
-    const entry: LogEntry = { message, variant, timestamp: Date.now() };
-    this.log.update((entries) => [entry, ...entries].slice(0, LOG_LIMIT));
   }
 
   ngOnDestroy(): void {
