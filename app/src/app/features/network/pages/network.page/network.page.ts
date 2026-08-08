@@ -4,6 +4,7 @@ import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -23,16 +24,16 @@ import {
 } from 'ionicons/icons';
 import { NetworkService, NetworkInfo } from '../../data/network.service';
 import type { PluginListenerHandle } from '@capacitor/core';
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 type BannerVariant = 'info' | 'success' | 'danger' | 'disabled';
-
-interface ChangeLogEntry {
-  info: NetworkInfo;
-  timestamp: number;
-}
-
-/** How many entries to keep in the "Recent Changes" list. */
-const HISTORY_LIMIT = 5;
 
 @Component({
   selector: 'app-network',
@@ -43,15 +44,18 @@ const HISTORY_LIMIT = 5;
     HeaderComponent,
     ButtonComponent,
     BannerComponent,
+    ActivityLogComponent,
     IonIcon,
   ],
   templateUrl: './network.page.html',
   styleUrls: ['./network.page.scss'],
 })
 export class NetworkPage implements OnInit, OnDestroy {
+  pluginName = 'Network';
   status = signal<NetworkInfo | null>(null);
   isListening = signal(false);
-  history = signal<ChangeLogEntry[]>([]);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   private listenerHandle: PluginListenerHandle | null = null;
 
@@ -113,7 +117,11 @@ export class NetworkPage implements OnInit, OnDestroy {
     return info.connected ? 'checkmark-circle-outline' : 'close-circle-outline';
   });
 
-  constructor(private networkService: NetworkService) {
+  constructor(
+    private networkService: NetworkService,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
+  ) {
     addIcons({
       'wifi-outline': wifiOutline,
       'cellular-outline': cellularOutline,
@@ -133,14 +141,31 @@ export class NetworkPage implements OnInit, OnDestroy {
 
   /** Reads the status once on load — no permission involved, so it's safe to do silently. */
   async ngOnInit(): Promise<void> {
+    this.refreshActivityLog();
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
     await this.refresh();
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
   }
 
   /** Manually re-reads the current status (one-off check, no listener involved). */
   async refresh(): Promise<void> {
     const info = await this.networkService.getStatus();
     this.status.set(info);
-    this.pushHistory(info);
+    await this.refreshActivityLog();
   }
 
   /** Starts or stops the live connection listener, depending on the current state. */
@@ -155,22 +180,19 @@ export class NetworkPage implements OnInit, OnDestroy {
   private async startListening(): Promise<void> {
     this.listenerHandle = await this.networkService.listen((info) => {
       this.status.set(info);
-      this.pushHistory(info);
+      void this.refreshActivityLog();
     });
     this.isListening.set(true);
+    await this.refreshActivityLog();
   }
 
   private async stopListening(): Promise<void> {
-    await this.listenerHandle?.remove();
-    this.listenerHandle = null;
+    if (this.listenerHandle) {
+      await this.networkService.stopListening(this.listenerHandle);
+      this.listenerHandle = null;
+    }
     this.isListening.set(false);
-  }
-
-  private pushHistory(info: NetworkInfo): void {
-    const entry: ChangeLogEntry = { info, timestamp: Date.now() };
-    this.history.update((entries) =>
-      [entry, ...entries].slice(0, HISTORY_LIMIT),
-    );
+    await this.refreshActivityLog();
   }
 
   ngOnDestroy(): void {
