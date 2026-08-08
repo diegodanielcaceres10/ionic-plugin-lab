@@ -2,6 +2,9 @@
   <app-ui-header
     title="Filesystem"
     subtitle="Read and write files using the Capacitor Filesystem plugin."
+    [pluginType]="pluginInfo()?.pluginType ? 'official' : 'community'"
+    [isFavorited]="pluginInfo()?.isFavorited ?? false"
+    (favoriteToggled)="toggleFavorite()"
   />
 
   <app-ui-banner
@@ -114,25 +117,7 @@
     </div>
     }
   </section>
-  } @if (log().length) {
-  <section class="history">
-    <div class="info__header">
-      <ion-icon name="time-outline"></ion-icon>
-      <h3>Activity Log</h3>
-    </div>
-
-    @for (entry of log(); track entry.timestamp) {
-    <div class="history__row">
-      <span
-        class="history__dot"
-        [class]="'history__dot--' + entry.variant"
-      ></span>
-      <span class="history__label">{{ entry.message }}</span>
-      <span class="history__time"
-        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
-      >
-    </div>
-    }
-  </section>
   }
+
+  <app-activity-log [entries]="activityLog()" />
 </app-shell>

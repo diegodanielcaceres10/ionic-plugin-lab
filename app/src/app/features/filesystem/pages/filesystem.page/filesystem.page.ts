@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { BannerComponent } from '../../../../shared/ui/banner/banner.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -29,19 +30,16 @@ import {
   FileEntryInfo,
   DirectoryEntry,
 } from '../../data/filesystem.service';
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 type BannerVariant = 'info' | 'success' | 'danger' | 'disabled';
-type LogVariant = 'success' | 'danger' | 'info';
-
-interface LogEntry {
-  message: string;
-  variant: LogVariant;
-  timestamp: number;
-}
-
-/** How many entries to keep in the "Activity Log" list. */
-const LOG_LIMIT = 5;
-
 type ActionKey = 'write' | 'read' | 'append' | 'refresh' | 'list' | 'delete';
 
 interface QuickAction {
@@ -68,18 +66,21 @@ const REQUIRES_FILE: ReadonlySet<ActionKey> = new Set([
     CommonModule,
     HeaderComponent,
     BannerComponent,
+    ActivityLogComponent,
     IonIcon,
   ],
   templateUrl: './filesystem.page.html',
   styleUrls: ['./filesystem.page.scss'],
 })
 export class FilesystemPage implements OnInit {
+  pluginName = 'Filesystem';
   isBusy = signal(false);
   isBrowser = signal(false);
   fileInfo = signal<FileEntryInfo | null>(null);
   fileContent = signal<string | null>(null);
   entries = signal<DirectoryEntry[]>([]);
-  log = signal<LogEntry[]>([]);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   readonly hasFile = computed(() => this.fileInfo() !== null);
 
@@ -144,7 +145,11 @@ export class FilesystemPage implements OnInit {
     },
   ];
 
-  constructor(private filesystemService: FilesystemService) {
+  constructor(
+    private filesystemService: FilesystemService,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
+  ) {
     addIcons({
       'create-outline': createOutline,
       'eye-outline': eyeOutline,
@@ -166,10 +171,28 @@ export class FilesystemPage implements OnInit {
     });
   }
 
-  /** Reads the current file status on load — no permission involved, safe to do silently. */
+  /** Reads the current file status on load — no permission involved, safe to do silently (and not logged). */
   async ngOnInit(): Promise<void> {
     this.isBrowser.set(this.filesystemService.isBrowser());
-    this.fileInfo.set(await this.filesystemService.getDemoFileInfo());
+    this.fileInfo.set(await this.filesystemService.getDemoFileInfo(false));
+
+    this.refreshActivityLog();
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
   }
 
   /** Routes a quick-action card tap to its corresponding operation. */
@@ -208,7 +231,6 @@ export class FilesystemPage implements OnInit {
     await this.run(async () => {
       const info = await this.filesystemService.writeDemoFile();
       this.fileInfo.set(info);
-      this.pushLog('File created', 'success');
     });
   }
 
@@ -216,7 +238,6 @@ export class FilesystemPage implements OnInit {
     await this.run(async () => {
       const content = await this.filesystemService.readDemoFile();
       this.fileContent.set(content);
-      this.pushLog(`File read (${content.length} chars)`, 'success');
     });
   }
 
@@ -224,7 +245,6 @@ export class FilesystemPage implements OnInit {
     await this.run(async () => {
       const info = await this.filesystemService.appendToDemoFile();
       this.fileInfo.set(info);
-      this.pushLog('Line appended', 'success');
     });
   }
 
@@ -232,10 +252,6 @@ export class FilesystemPage implements OnInit {
     await this.run(async () => {
       const info = await this.filesystemService.getDemoFileInfo();
       this.fileInfo.set(info);
-      this.pushLog(
-        info ? 'Info refreshed' : 'File no longer exists',
-        info ? 'success' : 'info',
-      );
     });
   }
 
@@ -243,10 +259,6 @@ export class FilesystemPage implements OnInit {
     await this.run(async () => {
       const entries = await this.filesystemService.listDemoDirectory();
       this.entries.set(entries);
-      this.pushLog(
-        `Directory listed (${entries.length} item${entries.length === 1 ? '' : 's'})`,
-        'success',
-      );
     });
   }
 
@@ -255,24 +267,19 @@ export class FilesystemPage implements OnInit {
       await this.filesystemService.deleteDemoFile();
       this.fileInfo.set(null);
       this.fileContent.set(null);
-      this.pushLog('File deleted', 'danger');
     });
   }
 
-  /** Shared wrapper: toggles the busy state and turns unexpected failures into a log entry. */
+  /** Shared wrapper: toggles the busy state and refreshes the log — the service already logs each outcome. */
   private async run(action: () => Promise<void>): Promise<void> {
     this.isBusy.set(true);
     try {
       await action();
     } catch {
-      this.pushLog('Something went wrong', 'danger');
+      // already logged by FilesystemService
     } finally {
       this.isBusy.set(false);
+      await this.refreshActivityLog();
     }
-  }
-
-  private pushLog(message: string, variant: LogVariant): void {
-    const entry: LogEntry = { message, variant, timestamp: Date.now() };
-    this.log.update((entries) => [entry, ...entries].slice(0, LOG_LIMIT));
   }
 }
