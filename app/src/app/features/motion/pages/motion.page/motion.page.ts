@@ -1,8 +1,9 @@
-import { Component, OnDestroy, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -21,14 +22,14 @@ import {
   OrientationListenerEvent,
   PluginListenerHandle,
 } from '../../data/motion.service';
-
-type LogVariant = 'success' | 'danger' | 'info';
-
-interface LogEntry {
-  message: string;
-  variant: LogVariant;
-  timestamp: number;
-}
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 interface Vector3 {
   x: number;
@@ -48,9 +49,6 @@ interface Orientation {
   gamma: number;
 }
 
-/** How many entries to keep in the "Activity Log" list. */
-const LOG_LIMIT = 5;
-
 @Component({
   selector: 'app-motion',
   standalone: true,
@@ -59,12 +57,14 @@ const LOG_LIMIT = 5;
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonIcon,
   ],
   templateUrl: './motion.page.html',
   styleUrls: ['./motion.page.scss'],
 })
-export class MotionPage implements OnDestroy {
+export class MotionPage implements OnInit, OnDestroy {
+  pluginName = 'Motion';
   needsPermission = signal(false);
   permissionGranted = signal(false);
 
@@ -75,12 +75,17 @@ export class MotionPage implements OnDestroy {
   rotationRate = signal<RotationRate | null>(null);
   orientation = signal<Orientation | null>(null);
 
-  log = signal<LogEntry[]>([]);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   private accelHandle: PluginListenerHandle | null = null;
   private orientationHandle: PluginListenerHandle | null = null;
 
-  constructor(private motionService: MotionService) {
+  constructor(
+    private motionService: MotionService,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
+  ) {
     addIcons({
       'information-circle-outline': informationCircleOutline,
       'pulse-outline': pulseOutline,
@@ -95,25 +100,45 @@ export class MotionPage implements OnDestroy {
     this.needsPermission.set(this.motionService.needsPermissionRequest());
   }
 
+  async ngOnInit(): Promise<void> {
+    this.refreshActivityLog();
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
+  }
+
   async requestPermission(): Promise<void> {
     try {
       const granted = await this.motionService.requestPermission();
       this.permissionGranted.set(granted);
-      this.pushLog(
-        granted ? 'Motion permission granted' : 'Motion permission denied',
-        granted ? 'success' : 'danger',
-      );
     } catch {
-      this.pushLog('Permission request failed', 'danger');
+      // already logged by MotionService
+    } finally {
+      await this.refreshActivityLog();
     }
   }
 
   async toggleAccel(): Promise<void> {
     if (this.isTrackingAccel()) {
-      await this.accelHandle?.remove();
-      this.accelHandle = null;
+      if (this.accelHandle) {
+        await this.motionService.stopAccelListener(this.accelHandle);
+        this.accelHandle = null;
+      }
       this.isTrackingAccel.set(false);
-      this.pushLog('Accelerometer stopped', 'info');
+      await this.refreshActivityLog();
       return;
     }
 
@@ -124,15 +149,19 @@ export class MotionPage implements OnDestroy {
       },
     );
     this.isTrackingAccel.set(true);
-    this.pushLog('Accelerometer started', 'success');
+    await this.refreshActivityLog();
   }
 
   async toggleOrientation(): Promise<void> {
     if (this.isTrackingOrientation()) {
-      await this.orientationHandle?.remove();
-      this.orientationHandle = null;
+      if (this.orientationHandle) {
+        await this.motionService.stopOrientationListener(
+          this.orientationHandle,
+        );
+        this.orientationHandle = null;
+      }
       this.isTrackingOrientation.set(false);
-      this.pushLog('Orientation stopped', 'info');
+      await this.refreshActivityLog();
       return;
     }
 
@@ -142,7 +171,7 @@ export class MotionPage implements OnDestroy {
       },
     );
     this.isTrackingOrientation.set(true);
-    this.pushLog('Orientation started', 'success');
+    await this.refreshActivityLog();
   }
 
   /** Maps gamma (left/right tilt) and beta (front/back tilt) to a position inside the bubble track. */
@@ -158,11 +187,6 @@ export class MotionPage implements OnDestroy {
 
   formatNumber(value: number | null | undefined): string {
     return value === null || value === undefined ? '—' : value.toFixed(2);
-  }
-
-  private pushLog(message: string, variant: LogVariant): void {
-    const entry: LogEntry = { message, variant, timestamp: Date.now() };
-    this.log.update((entries) => [entry, ...entries].slice(0, LOG_LIMIT));
   }
 
   async ngOnDestroy(): Promise<void> {

@@ -158,7 +158,7 @@ export class HomePage implements OnInit {
     });
     await this.loadPlugins();
     if (this.platformService.isNativePlatform()) {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       await SplashScreen.hide();
     }
     this.fadeCustomSplash();
