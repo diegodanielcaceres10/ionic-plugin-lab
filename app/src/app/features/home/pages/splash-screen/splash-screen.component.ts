@@ -1,11 +1,10 @@
 import { Component, input } from '@angular/core';
-import { IonIcon } from '@ionic/angular/standalone';
 import { LogoComponent } from '../../../../shared/ui/logo/logo.component';
 
 @Component({
   selector: 'app-ui-splash-screen',
   standalone: true,
-  imports: [IonIcon, LogoComponent],
+  imports: [LogoComponent],
   templateUrl: './splash-screen.component.html',
   styleUrls: ['./splash-screen.component.scss'],
 })
