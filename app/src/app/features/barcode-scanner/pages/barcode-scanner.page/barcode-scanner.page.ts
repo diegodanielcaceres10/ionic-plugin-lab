@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import { CommonModule } from '@angular/common';
 import {
   IonSpinner,
@@ -26,9 +27,16 @@ import {
 import {
   BarcodeScannerService,
   ScanResult,
-  BrowserNotSupportedError,
   ModuleNotAvailableError,
 } from '../../data/barcode-scanner.service';
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 type ViewState = 'idle' | 'scanning' | 'scanned';
 
@@ -40,6 +48,7 @@ type ViewState = 'idle' | 'scanning' | 'scanned';
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonSpinner,
     IonIcon,
   ],
@@ -47,13 +56,18 @@ type ViewState = 'idle' | 'scanning' | 'scanned';
   styleUrls: ['./barcode-scanner.page.scss'],
 })
 export class BarcodeScannerPage {
+  pluginName = 'Barcode Scanner';
   state = signal<ViewState>('idle');
   scan = signal<ScanResult | null>(null);
   history = signal<ScanResult[]>([]);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   constructor(
     private barcodeScannerService: BarcodeScannerService,
     private alertController: AlertController,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
   ) {
     addIcons({
       'chevron-back-outline': chevronBackOutline,
@@ -71,19 +85,36 @@ export class BarcodeScannerPage {
     });
   }
 
+  async ngOnInit(): Promise<void> {
+    this.refreshActivityLog();
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
+  }
+
   /** Opens the native scanner and reads the next barcode. */
   async scanBarcode(): Promise<void> {
     this.state.set('scanning');
     try {
       const result = await this.barcodeScannerService.scan();
       this.applyResult(result);
-    } catch (error) {
-      if (error instanceof BrowserNotSupportedError) {
+      if (result.mock) {
         await this.showBrowserNotSupportedAlert();
-        this.applyResult(this.barcodeScannerService.getMockScan());
-        return;
       }
-
+    } catch (error) {
       if (error instanceof ModuleNotAvailableError) {
         await this.showModuleDownloadingAlert();
         this.state.set(this.scan() ? 'scanned' : 'idle');
@@ -99,6 +130,8 @@ export class BarcodeScannerPage {
       // Most likely the user closed the native scanner without reading
       // anything (e.g. tapped back). Nothing went wrong, just go back.
       this.state.set(this.scan() ? 'scanned' : 'idle');
+    } finally {
+      await this.refreshActivityLog();
     }
   }
 

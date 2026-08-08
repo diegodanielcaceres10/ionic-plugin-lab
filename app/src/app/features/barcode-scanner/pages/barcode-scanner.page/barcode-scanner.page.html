@@ -2,6 +2,9 @@
   <app-ui-header
     title="Barcode Scanner"
     subtitle="Scan QR codes and barcodes using the Capacitor ML Kit plugin."
+    [pluginType]="pluginInfo()?.pluginType ? 'official' : 'community'"
+    [isFavorited]="pluginInfo()?.isFavorited ?? false"
+    (favoriteToggled)="toggleFavorite()"
   />
 
   <section class="card">
@@ -106,4 +109,6 @@
     }
   </section>
   }
+
+  <app-activity-log [entries]="activityLog()" />
 </app-shell>

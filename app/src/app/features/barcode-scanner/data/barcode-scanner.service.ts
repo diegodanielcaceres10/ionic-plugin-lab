@@ -1,6 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { BarcodeScanner, Barcode } from '@capacitor-mlkit/barcode-scanning';
 import { PlatformService } from '../../../core/platform/platform.service';
+import { PluginLogsService } from '../../../core/plugin-logs/plugin-logs.service';
+import { PluginsCatalogService } from '../../../core/plugins-catalog/plugins-catalog.service';
 
 export interface ScanResult {
   /** The decoded text of the barcode (URL, product code, plain text, etc.) */
@@ -10,17 +12,7 @@ export interface ScanResult {
   /** True when the value looks like an http(s) URL */
   isUrl: boolean;
   scannedAt: string;
-}
-
-/**
- * Thrown when running in the browser, where the native ML Kit scanner
- * cannot be tested.
- */
-export class BrowserNotSupportedError extends Error {
-  constructor() {
-    super('The Barcode Scanner plugin cannot be tested in the browser.');
-    this.name = 'BrowserNotSupportedError';
-  }
+  mock: boolean;
 }
 
 /**
@@ -37,37 +29,78 @@ export class ModuleNotAvailableError extends Error {
 @Injectable({ providedIn: 'root' })
 export class BarcodeScannerService {
   private platformService = inject(PlatformService);
+  private pluginLogsService = inject(PluginLogsService);
+  private pluginsCatalogService = inject(PluginsCatalogService);
 
   /**
    * Single entry point to scan a barcode. The page doesn't need to know
    * about permissions, the ML Kit module, or the platform: it calls
    * scan() and reacts to the result or one of the typed errors.
    */
+  /**
+   * Single entry point to scan a barcode. The page doesn't need to know
+   * about permissions, the ML Kit module, or the platform: it calls
+   * scan() and reacts to the result or one of the typed errors.
+   */
   async scan(): Promise<ScanResult> {
-    if (!this.platformService.isNativePlatform()) {
-      throw new BrowserNotSupportedError();
+    try {
+      if (!this.platformService.isNativePlatform()) {
+        await this.saveLog('Scan', 'Scan simulated', 'warning');
+        return {
+          value: 'https://diegodanielcaceres10.github.io/nura/',
+          format: 'QR_CODE',
+          isUrl: true,
+          scannedAt: 'Just now',
+          mock: true,
+        };
+      }
+
+      await this.ensureModuleAvailable();
+      await this.ensurePermissions();
+
+      const { barcodes } = await BarcodeScanner.scan();
+
+      if (!barcodes.length) {
+        throw new Error('NO_BARCODE_DETECTED');
+      }
+
+      const result = this.toScanResult(barcodes[0]);
+      await this.saveLog(result.format, 'Barcode scanned', 'success');
+      return result;
+    } catch (error) {
+      if (error instanceof ModuleNotAvailableError) {
+        await this.saveLog(
+          'Scan',
+          'Barcode Scanner module downloading',
+          'warning',
+        );
+        throw error;
+      }
+
+      await this.saveLog(
+        'Scan',
+        (error instanceof Error && error.message) || 'Unknown',
+        'danger',
+      );
+      throw error;
     }
-
-    await this.ensureModuleAvailable();
-    await this.ensurePermissions();
-
-    const { barcodes } = await BarcodeScanner.scan();
-
-    if (!barcodes.length) {
-      throw new Error('NO_BARCODE_DETECTED');
-    }
-
-    return this.toScanResult(barcodes[0]);
   }
 
-  /** Fixed sample data used to preview the full flow on browser */
-  getMockScan(): ScanResult {
-    return {
-      value: 'https://diegodanielcaceres10.github.io/nura/',
-      format: 'QR_CODE',
-      isUrl: true,
-      scannedAt: 'Just now',
-    };
+  /** Writes the activity log entry and, on success or mock, marks Barcode Scanner as tested/recently used. */
+  private async saveLog(
+    type: string,
+    message: string,
+    status: 'success' | 'warning' | 'danger',
+  ): Promise<void> {
+    await this.pluginLogsService.add({
+      plugin: 'Barcode Scanner',
+      type,
+      message,
+      status,
+    });
+    if (status !== 'danger') {
+      await this.pluginsCatalogService.markAsTested('Barcode Scanner');
+    }
   }
 
   // ---------------------------------------------------------------
@@ -81,6 +114,7 @@ export class BarcodeScannerService {
       format: barcode.format,
       isUrl: /^https?:\/\//i.test(value),
       scannedAt: 'Just now',
+      mock: false,
     };
   }
 
