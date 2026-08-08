@@ -65,7 +65,7 @@ export class BarcodeScannerService {
       }
 
       const result = this.toScanResult(barcodes[0]);
-      await this.saveLog(result.format, 'Barcode scanned', 'success');
+      await this.saveLog('Scan', 'Barcode scanned', 'success');
       return result;
     } catch (error) {
       if (error instanceof ModuleNotAvailableError) {

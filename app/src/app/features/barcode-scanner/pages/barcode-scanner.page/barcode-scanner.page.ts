@@ -59,7 +59,6 @@ export class BarcodeScannerPage {
   pluginName = 'Barcode Scanner';
   state = signal<ViewState>('idle');
   scan = signal<ScanResult | null>(null);
-  history = signal<ScanResult[]>([]);
   pluginInfo = signal<PluginCatalogEntry | null>(null);
   activityLog = signal<PluginLogEntry[]>([]);
 
@@ -152,14 +151,8 @@ export class BarcodeScannerPage {
     await navigator.clipboard.writeText(value);
   }
 
-  /** Clears the session's scan history. */
-  clearHistory(): void {
-    this.history.set([]);
-  }
-
   private applyResult(result: ScanResult): void {
     this.scan.set(result);
-    this.history.update((current) => [result, ...current].slice(0, 10));
     this.state.set('scanned');
   }
 

@@ -119,7 +119,12 @@ export class CameraService {
   ): Promise<void> {
     await this.pluginLogsService.add({
       plugin: 'Camera',
-      type,
+      type:
+        type === CameraSource.Camera
+          ? 'Camera'
+          : type === CameraSource.Photos
+            ? 'Gallery'
+            : 'Unknown',
       message,
       status,
     });

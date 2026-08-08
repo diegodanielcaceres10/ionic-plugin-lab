@@ -2,6 +2,9 @@
   <app-ui-header
     title="Geolocation"
     subtitle="Track your position using the Capacitor Geolocation plugin."
+    [pluginType]="pluginInfo()?.pluginType ? 'official' : 'community'"
+    [isFavorited]="pluginInfo()?.isFavorited ?? false"
+    (favoriteToggled)="toggleFavorite()"
   />
 
   <section class="card">
@@ -132,4 +135,6 @@
       >
     </div>
   </section>
+
+  <app-activity-log [entries]="activityLog()" />
 </app-shell>

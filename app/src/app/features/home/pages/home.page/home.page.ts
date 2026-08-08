@@ -1,8 +1,9 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { SplashScreenComponent } from '../splash-screen/splash-screen.component';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
-import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -76,7 +77,7 @@ interface StatItem {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [SplashScreenComponent, ShellComponent, CommonModule, IonIcon],
+  imports: [CommonModule, SplashScreenComponent, ShellComponent, IonIcon],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
 })
@@ -92,7 +93,7 @@ export class HomePage implements OnInit {
     this.buildStats(this.pluginCategories()),
   );
 
-  constructor() {
+  async ngOnInit(): Promise<void> {
     addIcons({
       'menu-outline': menuOutline,
       'flask-outline': flaskOutline,
@@ -148,9 +149,6 @@ export class HomePage implements OnInit {
       'people-outline': peopleOutline,
       'calendar-outline': calendarOutline,
     });
-  }
-
-  async ngOnInit(): Promise<void> {
     await this.loadPlugins();
   }
 
@@ -164,6 +162,8 @@ export class HomePage implements OnInit {
     );
 
     // Minimum splash duration so it doesn't feel like a flicker
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await SplashScreen.hide();
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     this.isSplashFading.set(true);

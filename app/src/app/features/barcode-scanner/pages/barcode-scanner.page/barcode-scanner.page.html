@@ -89,26 +89,5 @@
     </div>
   </section>
 
-  @if (history().length > 0) {
-  <section class="history">
-    <div class="history__header">
-      <div class="history__title">
-        <ion-icon name="time-outline"></ion-icon>
-        <h3>Recent Scans</h3>
-      </div>
-      <button class="history__clear" (click)="clearHistory()">
-        <ion-icon name="trash-outline"></ion-icon>
-      </button>
-    </div>
-
-    @for (item of history(); track item.scannedAt + item.value) {
-    <div class="history__row">
-      <span class="history__value truncate">{{ item.value }}</span>
-      <span class="history__format">{{ item.format }}</span>
-    </div>
-    }
-  </section>
-  }
-
   <app-activity-log [entries]="activityLog()" />
 </app-shell>

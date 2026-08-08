@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import {
   IonSpinner,
   IonIcon,
@@ -27,6 +28,14 @@ import {
   GeolocationPermissionDeniedError,
 } from '../../data/geolocation.service';
 import { MapService } from '../../data/map.service';
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 type ViewState =
   | 'idle'
@@ -47,6 +56,7 @@ const MAP_ELEMENT_ID = 'geo-map';
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonSpinner,
     IonIcon,
   ],
@@ -54,8 +64,11 @@ const MAP_ELEMENT_ID = 'geo-map';
   styleUrls: ['./geolocation.page.scss'],
 })
 export class GeolocationPage implements OnDestroy {
+  pluginName = 'Geolocation';
   state = signal<ViewState>('idle');
   position = signal<PositionInfo | null>(null);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   private watchId: string | null = null;
 
@@ -63,6 +76,8 @@ export class GeolocationPage implements OnDestroy {
     private geolocationService: GeolocationService,
     private mapService: MapService,
     private alertController: AlertController,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
   ) {
     addIcons({
       'location-outline': locationOutline,
@@ -82,6 +97,26 @@ export class GeolocationPage implements OnDestroy {
     return this.state() === 'watching';
   }
 
+  async ngOnInit(): Promise<void> {
+    this.refreshActivityLog();
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
+  }
+
   /** Requests permission (if needed) and resolves the current position, mounting the map on success. */
   async getCurrentLocation(): Promise<void> {
     this.state.set('locating');
@@ -91,6 +126,8 @@ export class GeolocationPage implements OnDestroy {
       this.showOnMap(position);
     } catch (error) {
       await this.handleError(error);
+    } finally {
+      await this.refreshActivityLog();
     }
   }
 
@@ -122,6 +159,8 @@ export class GeolocationPage implements OnDestroy {
       this.state.set('watching');
     } catch (error) {
       await this.handleError(error);
+    } finally {
+      await this.refreshActivityLog();
     }
   }
 
@@ -131,6 +170,7 @@ export class GeolocationPage implements OnDestroy {
       this.watchId = null;
     }
     this.state.set('ready');
+    await this.refreshActivityLog();
   }
 
   /**
