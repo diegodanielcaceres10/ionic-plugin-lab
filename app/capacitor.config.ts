@@ -5,12 +5,14 @@ const config: CapacitorConfig = {
   appName: 'Ionic Plugin Lab',
   webDir: 'www',
   plugins: {
+    StatusBar: {
+      style: 'LIGHT',
+      backgroundColor: '#ffffff',
+    },
     LocalNotifications: {
       smallIcon: 'ic_stat_notification',
-      iconColor: '#4F46E5',
     },
     SplashScreen: {
-      launchShowDuration: 0,
       launchAutoHide: false,
       launchFadeOutDuration: 100,
       backgroundColor: '#ffffffff',

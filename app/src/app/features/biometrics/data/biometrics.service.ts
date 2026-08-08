@@ -1,5 +1,4 @@
-import { Injectable } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
+import { inject, Injectable } from '@angular/core';
 import {
   BiometricAuth,
   BiometryType,
@@ -11,6 +10,7 @@ import type {
   CheckBiometryResult,
   AuthenticateOptions,
 } from '@aparajita/capacitor-biometric-auth';
+import { PlatformService } from '../../../core/platform/platform.service';
 
 export {
   BiometryType,
@@ -53,9 +53,11 @@ export const BIOMETRY_OPTIONS: BiometryOption[] = [
 
 @Injectable({ providedIn: 'root' })
 export class BiometricsService {
+  private platformService = inject(PlatformService);
+
   /** True when running in a plain browser tab — biometry is simulated here, not real. */
   isBrowser(): boolean {
-    return !Capacitor.isNativePlatform();
+    return !this.platformService.isNativePlatform();
   }
 
   async checkBiometry(): Promise<CheckBiometryResult> {

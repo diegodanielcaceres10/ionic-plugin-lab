@@ -18,6 +18,10 @@ import {
   alertCircleOutline,
 } from 'ionicons/icons';
 import { DeviceService, DeviceSnapshot } from '../../data/device.service';
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
 
 type ViewState = 'loading' | 'ready' | 'error';
 type CopyTarget = 'identifier' | 'json';
@@ -36,9 +40,11 @@ type CopyTarget = 'identifier' | 'json';
   styleUrls: ['./device.page.scss'],
 })
 export class DevicePage implements OnInit {
+  pluginName = 'Device';
   state = signal<ViewState>('loading');
   snapshot = signal<DeviceSnapshot | null>(null);
   copied = signal<CopyTarget | null>(null);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
 
   private copiedResetHandle: ReturnType<typeof setTimeout> | null = null;
 
@@ -47,7 +53,10 @@ export class DevicePage implements OnInit {
     return snap ? JSON.stringify(this.toPlainObject(snap), null, 2) : '';
   });
 
-  constructor(private deviceService: DeviceService) {
+  constructor(
+    private deviceService: DeviceService,
+    private pluginsCatalogService: PluginsCatalogService,
+  ) {
     addIcons({
       'finger-print-outline': fingerPrintOutline,
       'copy-outline': copyOutline,
@@ -64,6 +73,17 @@ export class DevicePage implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.load();
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
   }
 
   /** Reads every device field again — handy to refresh the battery level. */

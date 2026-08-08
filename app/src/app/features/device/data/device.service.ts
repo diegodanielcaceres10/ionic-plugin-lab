@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Device, type DeviceInfo } from '@capacitor/device';
+import { PluginsCatalogService } from '../../../core/plugins-catalog/plugins-catalog.service';
 
 export interface BatterySnapshot {
   level: number | null;
@@ -23,6 +24,8 @@ export interface DeviceSnapshot {
  */
 @Injectable({ providedIn: 'root' })
 export class DeviceService {
+  private pluginsCatalogService = inject(PluginsCatalogService);
+
   async getSnapshot(): Promise<DeviceSnapshot> {
     const [id, info, languageCode, languageTag, battery] = await Promise.all([
       Device.getId(),
@@ -31,6 +34,8 @@ export class DeviceService {
       Device.getLanguageTag(),
       this.getBatterySafely(),
     ]);
+
+    await this.pluginsCatalogService.markAsTested('Device');
 
     return {
       identifier: id.identifier,

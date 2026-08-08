@@ -61,6 +61,8 @@ import {
   peopleOutline,
   calendarOutline,
 } from 'ionicons/icons';
+import { PlatformService } from '../../../../core/platform/platform.service';
+import { StatusBarService } from '../../../status-bar/data/status-bar.service';
 import {
   PluginCatalogEntry,
   PluginCategoryGroup,
@@ -82,6 +84,8 @@ interface StatItem {
   styleUrls: ['./home.page.scss'],
 })
 export class HomePage implements OnInit {
+  private platformService = inject(PlatformService);
+  private statusBarService = inject(StatusBarService);
   private pluginsCatalogService = inject(PluginsCatalogService);
   private router = inject(Router);
 
@@ -94,6 +98,9 @@ export class HomePage implements OnInit {
   );
 
   async ngOnInit(): Promise<void> {
+    if (this.platformService.isNativePlatform()) {
+      SplashScreen.show();
+    }
     addIcons({
       'menu-outline': menuOutline,
       'flask-outline': flaskOutline,
@@ -150,27 +157,27 @@ export class HomePage implements OnInit {
       'calendar-outline': calendarOutline,
     });
     await this.loadPlugins();
+    if (this.platformService.isNativePlatform()) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await SplashScreen.hide();
+    }
+    this.fadeCustomSplash();
   }
 
   ionViewWillEnter() {
     this.loadPlugins();
   }
 
+  async fadeCustomSplash() {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    this.isSplashFading.set(true);
+    setTimeout(() => this.isSplashVisible.set(false), 500);
+  }
+
   async loadPlugins() {
     this.pluginCategories.set(
       await this.pluginsCatalogService.listGroupedByCategory(),
     );
-
-    // Minimum splash duration so it doesn't feel like a flicker
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    await SplashScreen.hide();
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-
-    this.isSplashFading.set(true);
-
-    // Remove from DOM once the CSS fade-out transition finishes (must match
-    // the transition duration above, 0.4s)
-    setTimeout(() => this.isSplashVisible.set(false), 400);
   }
 
   private buildStats(groups: PluginCategoryGroup[]): StatItem[] {

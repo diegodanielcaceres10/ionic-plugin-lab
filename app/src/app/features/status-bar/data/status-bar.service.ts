@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
+import { inject, Injectable } from '@angular/core';
 import { StatusBar, Style, Animation } from '@capacitor/status-bar';
+import { PlatformService } from '../../../core/platform/platform.service';
 
 /** Thrown when a StatusBar action is attempted while running in a plain browser tab. */
 export class BrowserNotSupportedError extends Error {
@@ -41,13 +41,15 @@ export const COLOR_SWATCHES: ColorSwatch[] = [
 
 @Injectable({ providedIn: 'root' })
 export class StatusBarService {
+  private platformService = inject(PlatformService);
+
   /** True when running in a plain browser tab (no native StatusBar available). */
   isBrowser(): boolean {
-    return !Capacitor.isNativePlatform();
+    return !this.platformService.isNativePlatform();
   }
 
   isIos(): boolean {
-    return Capacitor.getPlatform() === 'ios';
+    return this.platformService.getPlatform() === 'ios';
   }
 
   async getInfo(): Promise<StatusBarInfo> {
