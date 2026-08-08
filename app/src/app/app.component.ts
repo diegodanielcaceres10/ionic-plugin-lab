@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { StatusBarService } from './features/status-bar/data/status-bar.service';
 
 @Component({
   selector: 'app-root',
@@ -6,6 +9,13 @@ import { Component } from '@angular/core';
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent {
-  constructor() {}
+export class AppComponent implements OnInit {
+  private statusBarService = inject(StatusBarService);
+
+  async ngOnInit(): Promise<void> {
+    if (Capacitor.isNativePlatform()) {
+      await this.statusBarService.setDefault();
+      await SplashScreen.hide();
+    }
+  }
 }

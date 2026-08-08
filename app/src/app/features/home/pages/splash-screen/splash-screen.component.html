@@ -1,0 +1,28 @@
+@if (isSplashVisible()) {
+  <div class="custom_splash" [class.custom_splash--fade-out]="isSplashFading()">
+    <app-ui-logo />
+
+    <div class="custom_splash__footer">
+      <div class="custom_splash__footer-row">
+        <span class="custom_splash__footer-label">Built with</span>
+
+        <span class="custom_splash__footer-brand">
+          <img src="assets/ionic-logo.png" alt="Ionic" />
+        </span>
+
+        <span class="custom_splash__footer-separator">&</span>
+
+        <span class="custom_splash__footer-brand">
+          <img src="assets/capacitor-logo.png" alt="Capacitor" />
+        </span>
+      </div>
+      <div class="custom_splash__footer-row">
+        <span class="custom_splash__footer-label">Built by</span>
+
+        <span class="custom_splash__footer-brand">
+          <img src="assets/diegodanielcaceres.png" alt="Ionic" />
+        </span>
+      </div>
+    </div>
+  </div>
+}

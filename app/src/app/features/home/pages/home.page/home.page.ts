@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
 import { Router } from '@angular/router';
+import { SplashScreenComponent } from '../splash-screen/splash-screen.component';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
@@ -60,7 +60,6 @@ import {
   peopleOutline,
   calendarOutline,
 } from 'ionicons/icons';
-import { StatusBarService } from '../../../status-bar/data/status-bar.service';
 import {
   PluginCatalogEntry,
   PluginCategoryGroup,
@@ -77,26 +76,23 @@ interface StatItem {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [ShellComponent, CommonModule, IonIcon],
+  imports: [SplashScreenComponent, ShellComponent, CommonModule, IonIcon],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
 })
 export class HomePage implements OnInit {
   private pluginsCatalogService = inject(PluginsCatalogService);
+  private router = inject(Router);
 
+  readonly isSplashVisible = signal(true);
+  readonly isSplashFading = signal(false);
   readonly pluginCategories = signal<PluginCategoryGroup[]>([]);
 
   readonly stats = computed<StatItem[]>(() =>
     this.buildStats(this.pluginCategories()),
   );
-  readonly pluginCategories2 = computed(() =>
-    this.pluginsCatalogService.listGroupedByCategory(),
-  );
 
-  constructor(
-    private statusBarService: StatusBarService,
-    private router: Router,
-  ) {
+  constructor() {
     addIcons({
       'menu-outline': menuOutline,
       'flask-outline': flaskOutline,
@@ -156,9 +152,6 @@ export class HomePage implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadPlugins();
-    if (Capacitor.isNativePlatform()) {
-      await this.statusBarService.setDefault();
-    }
   }
 
   ionViewWillEnter() {
@@ -169,6 +162,15 @@ export class HomePage implements OnInit {
     this.pluginCategories.set(
       await this.pluginsCatalogService.listGroupedByCategory(),
     );
+
+    // Minimum splash duration so it doesn't feel like a flicker
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    this.isSplashFading.set(true);
+
+    // Remove from DOM once the CSS fade-out transition finishes (must match
+    // the transition duration above, 0.4s)
+    setTimeout(() => this.isSplashVisible.set(false), 400);
   }
 
   private buildStats(groups: PluginCategoryGroup[]): StatItem[] {

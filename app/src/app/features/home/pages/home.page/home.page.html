@@ -1,3 +1,7 @@
+<app-ui-splash-screen
+  [isSplashVisible]="isSplashVisible()"
+  [isSplashFading]="isSplashFading()"
+/>
 <app-shell activePage="home">
   <section class="welcome">
     <span class="welcome__glow welcome__glow--indigo" aria-hidden="true"></span>
@@ -21,7 +25,7 @@
     </div>
 
     <div class="welcome__logo">
-      <img src="assets/icon/logo.png" alt="Ionic Plugin Lab" />
+      <img ngSrc="assets/icon/logo.png" alt="Ionic Plugin Lab" />
       <ion-icon name="camera-outline"></ion-icon>
       <ion-icon name="phone-portrait-outline"></ion-icon>
       <ion-icon name="folder-outline"></ion-icon>
