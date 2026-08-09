@@ -1,0 +1,53 @@
+<app-shell activePage="favorites">
+  <section class="favorites-header">
+    <h1>Favorites</h1>
+    <p class="favorites-header__subtitle">
+      Plugins you've starred for quick access.
+    </p>
+  </section>
+
+  @if (favoritePlugins().length > 0) {
+  <section class="plugins">
+    <div class="plugins__list">
+      <div
+        class="plugins__row"
+        [class.plugins__row--pending]="!plugin.link"
+        *ngFor="let plugin of favoritePlugins()"
+        role="button"
+        tabindex="0"
+        (click)="onPluginTap(plugin)"
+        (keydown.enter)="onPluginTap(plugin)"
+      >
+        <div class="plugins__icon" [class.plugins__icon-pending]="!plugin.link">
+          <ion-icon [name]="plugin.icon"></ion-icon>
+        </div>
+
+        <div class="plugins__info">
+          <span class="plugins__label">{{ plugin.name }}</span>
+          <span class="plugins__category">{{ plugin.category }}</span>
+        </div>
+
+        <button
+          class="plugins__favorite plugins__favorite--active"
+          (click)="onUnfavoriteTap(plugin, $event)"
+        >
+          <ion-icon name="star"></ion-icon>
+        </button>
+
+        @if (plugin.link) {
+        <ion-icon
+          class="plugins__chevron"
+          name="chevron-forward-outline"
+        ></ion-icon>
+        }
+      </div>
+    </div>
+  </section>
+  } @else {
+  <section class="empty-state">
+    <ion-icon name="heart-dislike-outline"></ion-icon>
+    <h2>No favorites yet</h2>
+    <p>Tap the star on any plugin from Home to add it here.</p>
+  </section>
+  }
+</app-shell>

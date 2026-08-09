@@ -10,6 +10,20 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'favorites',
+    loadComponent: () =>
+      import('./features/favorites/pages/favorites.page/favorites.page').then(
+        (m) => m.FavoritesPage,
+      ),
+  },
+  {
+    path: 'logs',
+    loadComponent: () =>
+      import('./features/logs/pages/logs.page/logs.page').then(
+        (m) => m.LogsPage,
+      ),
+  },
+  {
     path: 'camera',
     loadComponent: () =>
       import('./features/camera/pages/camera.page/camera.page').then(

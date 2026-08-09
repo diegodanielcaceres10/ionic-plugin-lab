@@ -1,0 +1,100 @@
+<app-shell activePage="recent">
+  <section class="logs-header">
+    <h1>Recent Logs</h1>
+    <p class="logs-header__subtitle">
+      Activity recorded across every plugin demo.
+    </p>
+  </section>
+
+  <section class="filters">
+    <div class="filters__row">
+      <button
+        class="filters__chip"
+        [class.filters__chip--active]="selectedStatus() === 'all'"
+        (click)="setStatusFilter('all')"
+      >
+        All
+      </button>
+      <button
+        class="filters__chip filters__chip--success"
+        [class.filters__chip--active]="selectedStatus() === 'success'"
+        (click)="setStatusFilter('success')"
+      >
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        Success
+      </button>
+      <button
+        class="filters__chip filters__chip--warning"
+        [class.filters__chip--active]="selectedStatus() === 'warning'"
+        (click)="setStatusFilter('warning')"
+      >
+        <ion-icon name="warning-outline"></ion-icon>
+        Warning
+      </button>
+      <button
+        class="filters__chip filters__chip--danger"
+        [class.filters__chip--active]="selectedStatus() === 'danger'"
+        (click)="setStatusFilter('danger')"
+      >
+        <ion-icon name="close-circle-outline"></ion-icon>
+        Error
+      </button>
+    </div>
+
+    @if (pluginOptions().length > 0) {
+    <div class="filters__row filters__row--scroll">
+      <button
+        class="filters__chip"
+        [class.filters__chip--active]="selectedPlugin() === 'all'"
+        (click)="setPluginFilter('all')"
+      >
+        All plugins
+      </button>
+      @for (plugin of pluginOptions(); track plugin) {
+      <button
+        class="filters__chip"
+        [class.filters__chip--active]="selectedPlugin() === plugin"
+        (click)="setPluginFilter(plugin)"
+      >
+        {{ plugin }}
+      </button>
+      }
+    </div>
+    }
+  </section>
+
+  @if (filteredLogs().length > 0) {
+  <section class="logs">
+    <div class="logs__list">
+      <div class="logs__row" *ngFor="let log of filteredLogs()">
+        <div class="logs__icon" [class]="'logs__icon--' + log.status">
+          <ion-icon [name]="log.icon"></ion-icon>
+        </div>
+
+        <div class="logs__info">
+          <div class="logs__top">
+            <span class="logs__plugin">{{ log.plugin }}</span>
+            <span class="logs__date"
+              >{{ log.createdAt | date: "HH:mm:ss" }}</span
+            >
+          </div>
+          <span class="logs__message">{{ log.message }}</span>
+          <span class="logs__type">{{ log.type }}</span>
+        </div>
+
+        <ion-icon
+          class="logs__status-badge"
+          [class]="'logs__status-badge--' + log.status"
+          [name]="statusIcon(log.status)"
+        ></ion-icon>
+      </div>
+    </div>
+  </section>
+  } @else {
+  <section class="empty-state">
+    <ion-icon name="document-text-outline"></ion-icon>
+    <h2>No logs match these filters</h2>
+    <p>Try a different plugin or status, or run a plugin demo first.</p>
+  </section>
+  }
+</app-shell>
