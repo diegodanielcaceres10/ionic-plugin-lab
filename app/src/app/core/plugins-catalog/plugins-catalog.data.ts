@@ -50,7 +50,7 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
   {
     name: 'Haptics',
     category: 'Device & Sensors',
-    icon: 'phone-portrait-outline',
+    icon: 'pulse-outline',
     link: 'haptics',
     pluginType: 'official',
   },
