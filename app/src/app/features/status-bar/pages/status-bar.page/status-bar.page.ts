@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import { IonIcon, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -23,10 +24,17 @@ import {
   ColorSwatch,
   COLOR_SWATCHES,
   BrowserNotSupportedError,
-  IosNotSupportedError,
   Style,
   Animation,
 } from '../../data/status-bar.service';
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 interface StyleOption {
   label: string;
@@ -34,22 +42,11 @@ interface StyleOption {
   icon: string;
 }
 
-type LogVariant = 'success' | 'danger' | 'info';
-
-interface LogEntry {
-  message: string;
-  variant: LogVariant;
-  timestamp: number;
-}
-
 const STYLE_OPTIONS: StyleOption[] = [
   { label: 'Default', value: Style.Default, icon: 'contrast-outline' },
   { label: 'Light', value: Style.Light, icon: 'sunny-outline' },
   { label: 'Dark', value: Style.Dark, icon: 'moon-outline' },
 ];
-
-/** How many entries to keep in the "Activity Log" list. */
-const LOG_LIMIT = 5;
 
 @Component({
   selector: 'app-status-bar',
@@ -59,16 +56,19 @@ const LOG_LIMIT = 5;
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonIcon,
   ],
   templateUrl: './status-bar.page.html',
   styleUrls: ['./status-bar.page.scss'],
 })
 export class StatusBarPage implements OnInit {
+  pluginName = 'StatusBar';
   isBusy = signal(false);
   isBrowserEnv = signal(false);
   info = signal<StatusBarInfo | null>(null);
-  log = signal<LogEntry[]>([]);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   readonly styleOptions = STYLE_OPTIONS;
   readonly colorSwatches: ColorSwatch[] = COLOR_SWATCHES;
@@ -76,6 +76,8 @@ export class StatusBarPage implements OnInit {
   constructor(
     private statusBarService: StatusBarService,
     private alertController: AlertController,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
   ) {
     addIcons({
       'information-circle-outline': informationCircleOutline,
@@ -95,6 +97,24 @@ export class StatusBarPage implements OnInit {
   async ngOnInit(): Promise<void> {
     this.isBrowserEnv.set(this.statusBarService.isBrowser());
     await this.refreshInfo();
+
+    this.refreshActivityLog();
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
   }
 
   async refreshInfo(): Promise<void> {
@@ -110,25 +130,14 @@ export class StatusBarPage implements OnInit {
     await this.run(async () => {
       await this.statusBarService.setStyle(option.value);
       await this.refreshInfo();
-      this.pushLog(`Style set to ${option.label}`, 'success');
     });
   }
 
   async setColor(swatch: ColorSwatch): Promise<void> {
-    await this.run(
-      async () => {
-        await this.statusBarService.setBackgroundColor(swatch.value);
-        await this.refreshInfo();
-        this.pushLog(`Background set to ${swatch.label}`, 'success');
-      },
-      (error) => {
-        if (error instanceof IosNotSupportedError) {
-          this.pushLog('Background color has no effect on iOS', 'info');
-          return true;
-        }
-        return false;
-      },
-    );
+    await this.run(async () => {
+      await this.statusBarService.setBackgroundColor(swatch.value);
+      await this.refreshInfo();
+    });
   }
 
   async toggleVisibility(): Promise<void> {
@@ -136,10 +145,8 @@ export class StatusBarPage implements OnInit {
     await this.run(async () => {
       if (visible) {
         await this.statusBarService.hide(Animation.Fade);
-        this.pushLog('Status bar hidden', 'info');
       } else {
         await this.statusBarService.show(Animation.Fade);
-        this.pushLog('Status bar shown', 'success');
       }
       await this.refreshInfo();
     });
@@ -150,7 +157,6 @@ export class StatusBarPage implements OnInit {
     await this.run(async () => {
       await this.statusBarService.setOverlaysWebView(!overlays);
       await this.refreshInfo();
-      this.pushLog(`Overlay ${!overlays ? 'enabled' : 'disabled'}`, 'success');
     });
   }
 
@@ -163,31 +169,23 @@ export class StatusBarPage implements OnInit {
   }
 
   /**
-   * Shared wrapper: toggles the busy state and turns unexpected failures into
-   * a log entry. `onError` lets a caller handle a specific error itself
-   * (returning true) before falling back to the generic message.
+   * Shared wrapper: toggles the busy state, refreshes the log, and shows the
+   * one alert the service can't own itself (browser-not-supported). Every
+   * other outcome (including the iOS "no effect" case) is already logged by
+   * StatusBarService.
    */
-  private async run(
-    action: () => Promise<void>,
-    onError?: (error: unknown) => boolean,
-  ): Promise<void> {
+  private async run(action: () => Promise<void>): Promise<void> {
     this.isBusy.set(true);
     try {
       await action();
     } catch (error) {
       if (error instanceof BrowserNotSupportedError) {
         await this.showBrowserNotSupportedAlert();
-      } else if (!onError?.(error)) {
-        this.pushLog('Something went wrong', 'danger');
       }
     } finally {
       this.isBusy.set(false);
+      await this.refreshActivityLog();
     }
-  }
-
-  private pushLog(message: string, variant: LogVariant): void {
-    const entry: LogEntry = { message, variant, timestamp: Date.now() };
-    this.log.update((entries) => [entry, ...entries].slice(0, LOG_LIMIT));
   }
 
   private async showBrowserNotSupportedAlert(): Promise<void> {

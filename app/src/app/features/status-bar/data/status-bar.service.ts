@@ -1,6 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { StatusBar, Style, Animation } from '@capacitor/status-bar';
 import { PlatformService } from '../../../core/platform/platform.service';
+import { PluginLogsService } from '../../../core/plugin-logs/plugin-logs.service';
+import { PluginsCatalogService } from '../../../core/plugins-catalog/plugins-catalog.service';
 
 /** Thrown when a StatusBar action is attempted while running in a plain browser tab. */
 export class BrowserNotSupportedError extends Error {
@@ -42,6 +44,8 @@ export const COLOR_SWATCHES: ColorSwatch[] = [
 @Injectable({ providedIn: 'root' })
 export class StatusBarService {
   private platformService = inject(PlatformService);
+  private pluginLogsService = inject(PluginLogsService);
+  private pluginsCatalogService = inject(PluginsCatalogService);
 
   /** True when running in a plain browser tab (no native StatusBar available). */
   isBrowser(): boolean {
@@ -62,30 +66,76 @@ export class StatusBarService {
   }
 
   async setStyle(style: Style): Promise<void> {
-    if (this.isBrowser()) throw new BrowserNotSupportedError();
-    await StatusBar.setStyle({ style });
+    try {
+      if (this.isBrowser()) throw new BrowserNotSupportedError();
+      await StatusBar.setStyle({ style });
+      await this.saveLog(
+        'Style',
+        `Style set to ${this.styleLabel(style)}`,
+        'success',
+      );
+    } catch (error) {
+      await this.saveLog('Style', this.describeError(error), 'danger');
+      throw error;
+    }
   }
 
   /** Android only — iOS silently ignores background color changes. */
   async setBackgroundColor(color: string): Promise<void> {
-    if (this.isBrowser()) throw new BrowserNotSupportedError();
-    if (this.isIos()) throw new IosNotSupportedError();
-    await StatusBar.setBackgroundColor({ color });
+    try {
+      if (this.isBrowser()) throw new BrowserNotSupportedError();
+      if (this.isIos()) throw new IosNotSupportedError();
+      await StatusBar.setBackgroundColor({ color });
+      await this.saveLog('Background', `Background set to ${color}`, 'success');
+    } catch (error) {
+      if (error instanceof IosNotSupportedError) {
+        await this.saveLog(
+          'Background',
+          'Background color has no effect on iOS',
+          'warning',
+        );
+      } else {
+        await this.saveLog('Background', this.describeError(error), 'danger');
+      }
+      throw error;
+    }
   }
 
   async show(animation: Animation = Animation.Fade): Promise<void> {
-    if (this.isBrowser()) throw new BrowserNotSupportedError();
-    await StatusBar.show({ animation });
+    try {
+      if (this.isBrowser()) throw new BrowserNotSupportedError();
+      await StatusBar.show({ animation });
+      await this.saveLog('Visibility', 'Status bar shown', 'success');
+    } catch (error) {
+      await this.saveLog('Visibility', this.describeError(error), 'danger');
+      throw error;
+    }
   }
 
   async hide(animation: Animation = Animation.Fade): Promise<void> {
-    if (this.isBrowser()) throw new BrowserNotSupportedError();
-    await StatusBar.hide({ animation });
+    try {
+      if (this.isBrowser()) throw new BrowserNotSupportedError();
+      await StatusBar.hide({ animation });
+      await this.saveLog('Visibility', 'Status bar hidden', 'success');
+    } catch (error) {
+      await this.saveLog('Visibility', this.describeError(error), 'danger');
+      throw error;
+    }
   }
 
   async setOverlaysWebView(overlay: boolean): Promise<void> {
-    if (this.isBrowser()) throw new BrowserNotSupportedError();
-    await StatusBar.setOverlaysWebView({ overlay });
+    try {
+      if (this.isBrowser()) throw new BrowserNotSupportedError();
+      await StatusBar.setOverlaysWebView({ overlay });
+      await this.saveLog(
+        'Overlay',
+        `Overlay ${overlay ? 'enabled' : 'disabled'}`,
+        'success',
+      );
+    } catch (error) {
+      await this.saveLog('Overlay', this.describeError(error), 'danger');
+      throw error;
+    }
   }
 
   /** Fallback info used to preview the UI when running in the browser. */
@@ -96,6 +146,41 @@ export class StatusBarService {
       color: '#1A1A2E',
       overlays: false,
     };
+  }
+
+  /** Writes the activity log entry and, on success, marks StatusBar as tested/recently used. */
+  private async saveLog(
+    type: string,
+    message: string,
+    status: 'success' | 'warning' | 'danger',
+  ): Promise<void> {
+    await this.pluginLogsService.add({
+      plugin: 'StatusBar',
+      type,
+      message,
+      status,
+    });
+    if (status !== 'danger') {
+      await this.pluginsCatalogService.markAsTested('StatusBar');
+    }
+  }
+
+  private describeError(error: unknown): string {
+    if (error instanceof BrowserNotSupportedError) {
+      return 'Not available in the browser';
+    }
+    return (error instanceof Error && error.message) || 'Unknown';
+  }
+
+  private styleLabel(style: Style): string {
+    switch (style) {
+      case Style.Light:
+        return 'Light';
+      case Style.Dark:
+        return 'Dark';
+      default:
+        return 'Default';
+    }
   }
 }
 
