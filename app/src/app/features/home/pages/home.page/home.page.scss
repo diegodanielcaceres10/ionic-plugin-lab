@@ -119,7 +119,7 @@ $secondary-color: #4bd7b5;
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   background: #fff;
   border: 1px solid var(--ion-color-light-shade, #e0e0e0);
   border-radius: var(--card-radius);
