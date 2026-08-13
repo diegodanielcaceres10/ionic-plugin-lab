@@ -2,9 +2,7 @@
   <ion-toolbar>
     <ion-buttons slot="start">
       @if (isShowMenuButton()) {
-        <ion-button fill="clear">
-          <ion-icon slot="icon-only" name="menu-outline"></ion-icon>
-        </ion-button>
+        <ion-menu-button menu="main-menu"></ion-menu-button>
       } @else {
         <ion-button fill="clear" (click)="goBack()">
           <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
@@ -46,7 +44,7 @@
     <ion-label>Favorites</ion-label>
   </ion-tab-button>
   <ion-tab-button
-    tab="logs"
+    tab="recent"
     routerLink="/logs"
     [selected]="activePage() === 'recent'"
   >

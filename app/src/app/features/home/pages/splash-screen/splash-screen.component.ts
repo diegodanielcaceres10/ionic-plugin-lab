@@ -1,10 +1,11 @@
 import { Component, input } from '@angular/core';
 import { LogoComponent } from '../../../../shared/ui/logo/logo.component';
+import { SignatureComponent } from '../../../../shared/ui/signature/signature.component';
 
 @Component({
   selector: 'app-ui-splash-screen',
   standalone: true,
-  imports: [LogoComponent],
+  imports: [LogoComponent, SignatureComponent],
   templateUrl: './splash-screen.component.html',
   styleUrls: ['./splash-screen.component.scss'],
 })

@@ -1,0 +1,63 @@
+<ion-menu menuId="main-menu" contentId="main-content" side="start">
+  <ion-header class="ion-no-border">
+    <ion-toolbar>
+      <div class="header">
+        <img
+          src="assets/icon/logo.png"
+          alt="Ionic Plugin Lab logo"
+          class="header__logo"
+        />
+        <div class="header__text">
+          <span class="header__name">Ionic Plugin Lab</span>
+        </div>
+      </div>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="menu">
+    <ion-list lines="none" class="menu__list">
+      @for (link of links; track link.path) {
+        <ion-item
+          button
+          [routerLink]="link.path"
+          routerLinkActive="menu__item--active"
+          [detail]="false"
+          class="menu__item"
+          (click)="closeMenu()"
+        >
+          <ion-icon
+            class="menu__icon"
+            slot="start"
+            [name]="link.icon"
+          ></ion-icon>
+          <ion-label>{{ link.label }}</ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  </ion-content>
+
+  <ion-footer class="menu__footer">
+    <app-ui-signature />
+
+    <div class="menu__links">
+      <a
+        [href]="repoUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="code__link"
+      >
+        Repo
+        <ion-icon name="open-outline"></ion-icon>
+      </a>
+      <a
+        [href]="portfolioUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="code__link"
+      >
+        Portfolio
+        <ion-icon name="open-outline"></ion-icon>
+      </a>
+    </div>
+  </ion-footer>
+</ion-menu>

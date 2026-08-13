@@ -7,6 +7,7 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { PluginsCatalogService } from './core/plugins-catalog/plugins-catalog.service';
+import { SideMenuComponent } from './shared/side-menu/side-menu.component';
 
 function initializeCatalog(catalog: PluginsCatalogService) {
   return () => catalog.seedIfEmpty();
@@ -14,7 +15,12 @@ function initializeCatalog(catalog: PluginsCatalogService) {
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(),
+    AppRoutingModule,
+    SideMenuComponent,
+  ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     {
