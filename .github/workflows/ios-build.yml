@@ -31,6 +31,17 @@ jobs:
       - name: Build web assets
         run: npm run build
 
+      - name: Install @capacitor/ios if missing
+        run: |
+          if ! grep -q '"@capacitor/ios"' package.json; then
+            CORE_VERSION=$(node -p "require('./package.json').dependencies['@capacitor/core'] || require('./package.json').devDependencies['@capacitor/core']")
+            CORE_VERSION_CLEAN=$(echo "$CORE_VERSION" | sed 's/[^0-9.]*//')
+            echo "Instalando @capacitor/ios@$CORE_VERSION_CLEAN"
+            npm install @capacitor/ios@$CORE_VERSION_CLEAN
+          else
+            echo "@capacitor/ios ya está en package.json"
+          fi
+
       - name: Add iOS platform if missing
         run: |
           if [ ! -d "ios" ]; then
