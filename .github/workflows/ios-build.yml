@@ -54,6 +54,9 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync ios
 
+      - name: List ios directory structure (debug)
+        run: find ios -maxdepth 4
+
       - name: Install CocoaPods dependencies
         working-directory: app/ios/App
         run: pod install
