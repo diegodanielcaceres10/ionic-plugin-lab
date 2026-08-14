@@ -2,7 +2,7 @@ name: Distribute to Firebase App Distribution
 
 on:
   push:
-    branches: [firebase-distribute]
+    branches: [main]
 
 jobs:
   build-and-distribute:
@@ -71,7 +71,7 @@ jobs:
             app/build/outputs/apk/release/app-release.apk \
             --app "$FIREBASE_APP_ID" \
             --groups "testers" \
-            --release-notes "Build automática desde main (${{ github.sha }})"
+            --release-notes "Distribute by GitHub Actions"
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-key.json
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
