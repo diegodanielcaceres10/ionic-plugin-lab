@@ -1,0 +1,77 @@
+name: Build iOS (Simulator)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios-simulator:
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Add iOS platform if missing
+        run: |
+          if [ ! -d "ios" ]; then
+            echo "ios/ no existe, generando plataforma..."
+            npx cap add ios
+          else
+            echo "ios/ ya existe, se omite npx cap add ios"
+          fi
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Install CocoaPods dependencies
+        working-directory: app/ios/App
+        run: pod install
+
+      - name: Build for iOS Simulator (unsigned)
+        working-directory: app/ios/App
+        run: |
+          xcodebuild build \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -sdk iphonesimulator \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload .app bundle as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-build
+          path: app/ios/App/build/Build/Products/Release-iphonesimulator/*.app
+          retention-days: 7
+
+      - name: Commit generated ios/ folder if new
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ios
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: generate iOS platform folder [skip ci]"
+            git push
+          else
+            echo "Sin cambios en ios/, nada para commitear"
+          fi
