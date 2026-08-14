@@ -1,2 +1,3 @@
 # ionic-plugin-lab
-A playground for testing Ionic and Capacitor plugins with Angular. Includes real-world examples, native feature demos, and reusable implementations for Android, iOS, and Web.
+
+Personal playground for testing and implementing native Capacitor plugins with Angular and Ionic. Includes real-world, reusable examples for Android (Web is used only for local development).
