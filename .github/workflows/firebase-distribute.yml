@@ -7,6 +7,8 @@ on:
 jobs:
   build-and-distribute:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     defaults:
       run:
@@ -56,6 +58,10 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      - name: List APK outputs (debug)
+        working-directory: app/android
+        run: find app/build/outputs/apk -type f -name "*.apk"
+
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
@@ -75,3 +81,13 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-key.json
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+
+      - name: Publish public GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          files: app/android/app/build/outputs/apk/release/app-release.apk
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
