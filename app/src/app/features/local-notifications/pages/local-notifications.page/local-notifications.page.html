@@ -2,6 +2,9 @@
   <app-ui-header
     title="Local Notifications"
     subtitle="Schedule and manage notifications using the Capacitor Local Notifications plugin."
+    [pluginType]="pluginInfo()?.pluginType ? 'official' : 'community'"
+    [isFavorited]="pluginInfo()?.isFavorited ?? false"
+    (favoriteToggled)="toggleFavorite()"
   />
 
   @if (state() === 'checking') {
@@ -78,32 +81,7 @@
     } }
   </section>
 
-  <section class="info">
-    <div class="info__header">
-      <ion-icon name="hand-left-outline"></ion-icon>
-      <h3>Last Interaction</h3>
-    </div>
-
-    @if (lastAction()) {
-    <div class="info__row">
-      <span class="info__label">Notification ID</span>
-      <span class="info__value">{{ lastAction()!.id }}</span>
-    </div>
-    <div class="info__row">
-      <span class="info__label">Action</span>
-      <span class="info__value">{{ lastAction()!.actionId }}</span>
-    </div>
-    <div class="info__row">
-      <span class="info__label">At</span>
-      <span class="info__value"
-        >{{ lastAction()!.timestamp | date: 'HH:mm:ss' }}</span
-      >
-    </div>
-    } @else {
-    <p class="info__empty">
-      Tap a notification once it fires to see it logged here.
-    </p>
-    }
-  </section>
   }
+
+  <app-activity-log [entries]="activityLog()" />
 </app-shell>

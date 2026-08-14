@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import {
   IonSpinner,
   IonIcon,
@@ -15,24 +16,24 @@ import {
   refreshOutline,
   trashOutline,
   hourglassOutline,
-  handLeftOutline,
   alertCircleOutline,
   checkmarkCircleOutline,
 } from 'ionicons/icons';
-import type { ActionPerformed } from '@capacitor/local-notifications';
 import type { PluginListenerHandle } from '@capacitor/core';
 import {
   LocalNotificationsService,
   PendingNotification,
 } from '../../data/local-notifications.service';
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 type ViewState = 'checking' | 'prompt' | 'denied' | 'ready';
-
-interface LastAction {
-  id: number;
-  actionId: string;
-  timestamp: number;
-}
 
 /** How many seconds ahead the demo notification is scheduled. */
 const SCHEDULE_DELAY_SECONDS = 5;
@@ -45,6 +46,7 @@ const SCHEDULE_DELAY_SECONDS = 5;
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonSpinner,
     IonIcon,
   ],
@@ -52,16 +54,20 @@ const SCHEDULE_DELAY_SECONDS = 5;
   styleUrls: ['./local-notifications.page.scss'],
 })
 export class LocalNotificationsPage implements OnInit, OnDestroy {
+  pluginName = 'Local Notifications';
   state = signal<ViewState>('checking');
   pending = signal<PendingNotification[]>([]);
-  lastAction = signal<LastAction | null>(null);
   isScheduling = signal(false);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   private listenerHandle: PluginListenerHandle | null = null;
 
   constructor(
     private notificationsService: LocalNotificationsService,
     private alertController: AlertController,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
   ) {
     addIcons({
       'notifications-outline': notificationsOutline,
@@ -69,28 +75,36 @@ export class LocalNotificationsPage implements OnInit, OnDestroy {
       'refresh-outline': refreshOutline,
       'trash-outline': trashOutline,
       'hourglass-outline': hourglassOutline,
-      'hand-left-outline': handLeftOutline,
       'alert-circle-outline': alertCircleOutline,
       'checkmark-circle-outline': checkmarkCircleOutline,
     });
   }
 
   async ngOnInit(): Promise<void> {
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+    await this.refreshActivityLog();
+
     await this.checkPermission();
     if (this.state() === 'ready') {
       await this.refreshPending();
     }
 
     this.listenerHandle = await this.notificationsService.onActionPerformed(
-      (action: ActionPerformed) => {
-        this.lastAction.set({
-          id: action.notification.id,
-          actionId: action.actionId,
-          timestamp: Date.now(),
-        });
+      () => {
         void this.refreshPending();
+        void this.refreshActivityLog();
       },
     );
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
   }
 
   async checkPermission(): Promise<void> {
@@ -121,6 +135,7 @@ export class LocalNotificationsPage implements OnInit, OnDestroy {
       await this.showGenericErrorAlert();
     } finally {
       this.isScheduling.set(false);
+      await this.refreshActivityLog();
     }
   }
 
@@ -131,6 +146,12 @@ export class LocalNotificationsPage implements OnInit, OnDestroy {
   async cancelNotification(id: number): Promise<void> {
     await this.notificationsService.cancel(id);
     await this.refreshPending();
+    await this.refreshActivityLog();
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
   }
 
   private applyPermissionState(

@@ -1,9 +1,11 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import {
   LocalNotifications,
   type ActionPerformed,
 } from '@capacitor/local-notifications';
 import type { PluginListenerHandle } from '@capacitor/core';
+import { PluginLogsService } from '../../../core/plugin-logs/plugin-logs.service';
+import { PluginsCatalogService } from '../../../core/plugins-catalog/plugins-catalog.service';
 
 export type NotificationPermissionState =
   | 'prompt'
@@ -28,6 +30,9 @@ type ActionCallback = (action: ActionPerformed) => void;
  */
 @Injectable({ providedIn: 'root' })
 export class LocalNotificationsService {
+  private pluginLogsService = inject(PluginLogsService);
+  private pluginsCatalogService = inject(PluginsCatalogService);
+
   async checkPermissionStatus(): Promise<NotificationPermissionState> {
     const status = await LocalNotifications.checkPermissions();
     return status.display;
@@ -48,18 +53,31 @@ export class LocalNotificationsService {
     const id = Date.now() % 2147483647;
     const scheduleAt = new Date(Date.now() + delaySeconds * 1000);
 
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id,
-          title,
-          body,
-          schedule: { at: scheduleAt },
-        },
-      ],
-    });
-
-    return id;
+    try {
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id,
+            title,
+            body,
+            schedule: { at: scheduleAt },
+          },
+        ],
+      });
+      await this.saveLog(
+        'Schedule',
+        `Notification scheduled (${delaySeconds}s)`,
+        'success',
+      );
+      return id;
+    } catch (error) {
+      await this.saveLog(
+        'Schedule',
+        (error instanceof Error && error.message) || 'Unknown',
+        'danger',
+      );
+      throw error;
+    }
   }
 
   /** Lists notifications that were scheduled but haven't fired (or been cancelled) yet. */
@@ -75,7 +93,17 @@ export class LocalNotificationsService {
 
   /** Cancels a single pending notification by id. */
   async cancel(id: number): Promise<void> {
-    await LocalNotifications.cancel({ notifications: [{ id }] });
+    try {
+      await LocalNotifications.cancel({ notifications: [{ id }] });
+      await this.saveLog('Cancel', `Notification #${id} cancelled`, 'success');
+    } catch (error) {
+      await this.saveLog(
+        'Cancel',
+        (error instanceof Error && error.message) || 'Unknown',
+        'danger',
+      );
+      throw error;
+    }
   }
 
   /** Fires whenever the user taps a notification (or one of its action buttons). */
@@ -84,8 +112,32 @@ export class LocalNotificationsService {
   ): Promise<PluginListenerHandle> {
     return LocalNotifications.addListener(
       'localNotificationActionPerformed',
-      onAction,
+      (action: ActionPerformed) => {
+        void this.saveLog(
+          'Action',
+          `Action "${action.actionId}" performed on #${action.notification.id}`,
+          'success',
+        );
+        onAction(action);
+      },
     );
+  }
+
+  /** Writes the activity log entry and, on success, marks Local Notifications as tested/recently used. */
+  private async saveLog(
+    type: string,
+    message: string,
+    status: 'success' | 'warning' | 'danger',
+  ): Promise<void> {
+    await this.pluginLogsService.add({
+      plugin: 'Local Notifications',
+      type,
+      message,
+      status,
+    });
+    if (status !== 'danger') {
+      await this.pluginsCatalogService.markAsTested('Local Notifications');
+    }
   }
 
   private toEpoch(at: Date | string | undefined): number | null {
