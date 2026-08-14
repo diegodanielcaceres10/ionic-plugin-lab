@@ -2,6 +2,9 @@
   <app-ui-header
     title="Share"
     subtitle="Open the native share sheet using the Capacitor Share plugin."
+    [pluginType]="pluginInfo()?.pluginType ? 'official' : 'community'"
+    [isFavorited]="pluginInfo()?.isFavorited ?? false"
+    (favoriteToggled)="toggleFavorite()"
   />
 
   @if (state() === 'checking') {
@@ -56,28 +59,7 @@
     />
   </section>
 
-  <section class="info">
-    <div class="info__header">
-      <ion-icon name="information-circle-outline"></ion-icon>
-      <h3>Last Share Result</h3>
-    </div>
-
-    @if (lastResult()) {
-    <div class="info__row">
-      <span class="info__label">Activity Type</span>
-      <span class="info__value"
-        >{{ lastResult()!.activityType ?? 'Not reported' }}</span
-      >
-    </div>
-    <div class="info__row">
-      <span class="info__label">At</span>
-      <span class="info__value"
-        >{{ lastResult()!.timestamp | date: 'HH:mm:ss' }}</span
-      >
-    </div>
-    } @else {
-    <p class="info__empty">Share something to see the result here.</p>
-    }
-  </section>
   }
+
+  <app-activity-log [entries]="activityLog()" />
 </app-shell>
