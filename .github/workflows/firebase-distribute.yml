@@ -68,7 +68,7 @@ jobs:
         working-directory: app/android
         run: |
           firebase appdistribution:distribute \
-            app/build/outputs/apk/debug/app-debug.apk \
+            app/build/outputs/apk/release/app-release.apk \
             --app "$FIREBASE_APP_ID" \
             --groups "testers" \
             --release-notes "Build automática desde main (${{ github.sha }})"
