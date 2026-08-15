@@ -1,5 +1,7 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Clipboard } from '@capacitor/clipboard';
+import { PluginLogsService } from '../../../core/plugin-logs/plugin-logs.service';
+import { PluginsCatalogService } from '../../../core/plugins-catalog/plugins-catalog.service';
 
 export type ClipboardContentType =
   | 'text/plain'
@@ -29,9 +31,26 @@ export const SAMPLE_IMAGE_BASE64 =
  */
 @Injectable({ providedIn: 'root' })
 export class ClipboardService {
+  private pluginLogsService = inject(PluginLogsService);
+  private pluginsCatalogService = inject(PluginsCatalogService);
+
   /** Writes a plain-text string to the clipboard. */
   async writeText(value: string): Promise<void> {
-    await Clipboard.write({ string: value });
+    try {
+      await Clipboard.write({ string: value });
+      await this.saveLog(
+        'Write',
+        `Copied text (${value.length} chars)`,
+        'success',
+      );
+    } catch (error) {
+      await this.saveLog(
+        'Write',
+        (error instanceof Error && error.message) || 'Unknown',
+        'danger',
+      );
+      throw error;
+    }
   }
 
   /**
@@ -41,12 +60,32 @@ export class ClipboardService {
    * callers should wrap this in try/catch and handle accordingly.
    */
   async writeImage(base64: string): Promise<void> {
-    await Clipboard.write({ image: base64 });
+    try {
+      await Clipboard.write({ image: base64 });
+      await this.saveLog('Write', 'Copied image (PNG)', 'success');
+    } catch (error) {
+      await this.saveLog(
+        'Write',
+        (error instanceof Error && error.message) || 'Unknown',
+        'danger',
+      );
+      throw error;
+    }
   }
 
   /** Clears the clipboard by writing an empty string. */
   async clear(): Promise<void> {
-    await Clipboard.write({ string: '' });
+    try {
+      await Clipboard.write({ string: '' });
+      await this.saveLog('Clear', 'Clipboard cleared', 'success');
+    } catch (error) {
+      await this.saveLog(
+        'Clear',
+        (error instanceof Error && error.message) || 'Unknown',
+        'danger',
+      );
+      throw error;
+    }
   }
 
   /**
@@ -54,11 +93,45 @@ export class ClipboardService {
    * one of the known ClipboardContentType values.
    */
   async read(): Promise<ClipboardReadResult> {
-    const result = await Clipboard.read();
-    return {
-      value: result.value ?? '',
-      type: this.normaliseType(result.type, result.value),
-    };
+    try {
+      const result = await Clipboard.read();
+      const normalised: ClipboardReadResult = {
+        value: result.value ?? '',
+        type: this.normaliseType(result.type, result.value),
+      };
+      await this.saveLog(
+        'Read',
+        normalised.type === 'empty'
+          ? 'Clipboard is empty'
+          : `Read ${normalised.type}`,
+        'success',
+      );
+      return normalised;
+    } catch (error) {
+      await this.saveLog(
+        'Read',
+        (error instanceof Error && error.message) || 'Unknown',
+        'danger',
+      );
+      throw error;
+    }
+  }
+
+  /** Writes the activity log entry and, on success, marks Clipboard as tested/recently used. */
+  private async saveLog(
+    type: string,
+    message: string,
+    status: 'success' | 'warning' | 'danger',
+  ): Promise<void> {
+    await this.pluginLogsService.add({
+      plugin: 'Clipboard',
+      type,
+      message,
+      status,
+    });
+    if (status !== 'danger') {
+      await this.pluginsCatalogService.markAsTested('Clipboard');
+    }
   }
 
   private normaliseType(

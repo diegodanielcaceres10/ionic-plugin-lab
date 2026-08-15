@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import { IonIcon, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -12,7 +13,6 @@ import {
   flashOutline,
   imageOutline,
   checkmarkOutline,
-  timeOutline,
   informationCircleOutline,
 } from 'ionicons/icons';
 import {
@@ -21,20 +21,20 @@ import {
   ClipboardReadResult,
   SAMPLE_IMAGE_BASE64,
 } from '../../data/clipboard.service';
-
-interface HistoryEntry {
-  action: string;
-  detail: string;
-  timestamp: number;
-}
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 interface QuickCopy {
   label: string;
   value: string;
   icon: string;
 }
-
-const HISTORY_LIMIT = 6;
 
 const QUICK_COPIES: QuickCopy[] = [
   { label: 'Email', value: 'hello@ionicpluginlab.dev', icon: 'copy-outline' },
@@ -50,12 +50,15 @@ const QUICK_COPIES: QuickCopy[] = [
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonIcon,
   ],
   templateUrl: './clipboard.page.html',
   styleUrls: ['./clipboard.page.scss'],
 })
-export class ClipboardPage {
+export class ClipboardPage implements OnInit {
+  pluginName = 'Clipboard';
+
   // ── Write ─────────────────────────────────────────────────────────
   customText = signal('Hello from Ionic Plugin Lab!');
   copiedTarget = signal<string | null>(null);
@@ -64,14 +67,16 @@ export class ClipboardPage {
   // ── Read ──────────────────────────────────────────────────────────
   readResult = signal<ClipboardReadResult | null>(null);
 
-  // ── History ───────────────────────────────────────────────────────
-  history = signal<HistoryEntry[]>([]);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   readonly quickCopies = QUICK_COPIES;
 
   constructor(
     private clipboardService: ClipboardService,
     private alertController: AlertController,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
   ) {
     addIcons({
       'copy-outline': copyOutline,
@@ -80,9 +85,23 @@ export class ClipboardPage {
       'flash-outline': flashOutline,
       'image-outline': imageOutline,
       'checkmark-outline': checkmarkOutline,
-      'time-outline': timeOutline,
       'information-circle-outline': informationCircleOutline,
     });
+  }
+
+  async ngOnInit(): Promise<void> {
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+    await this.refreshActivityLog();
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
   }
 
   updateCustomText(value: string): void {
@@ -95,7 +114,7 @@ export class ClipboardPage {
     if (!text) return;
     await this.clipboardService.writeText(text);
     this.flash('custom');
-    this.pushHistory('Copied text', this.truncate(text));
+    await this.refreshActivityLog();
   }
 
   // ── 2. Read clipboard ─────────────────────────────────────────────
@@ -103,14 +122,10 @@ export class ClipboardPage {
     try {
       const result = await this.clipboardService.read();
       this.readResult.set(result);
-      this.pushHistory(
-        'Read clipboard',
-        result.type === 'empty'
-          ? 'empty'
-          : `${result.type} · ${this.truncate(result.value)}`,
-      );
     } catch {
       await this.showGenericErrorAlert();
+    } finally {
+      await this.refreshActivityLog();
     }
   }
 
@@ -119,9 +134,10 @@ export class ClipboardPage {
     try {
       await this.clipboardService.writeImage(SAMPLE_IMAGE_BASE64);
       this.flash('image');
-      this.pushHistory('Copied image', 'PNG · sample logo');
     } catch {
       await this.showImageNotSupportedAlert();
+    } finally {
+      await this.refreshActivityLog();
     }
   }
 
@@ -129,7 +145,7 @@ export class ClipboardPage {
   async quickCopy(chip: QuickCopy): Promise<void> {
     await this.clipboardService.writeText(chip.value);
     this.flash(chip.label);
-    this.pushHistory(`Copied ${chip.label}`, chip.value);
+    await this.refreshActivityLog();
   }
 
   // ── 6. Clear clipboard ────────────────────────────────────────────
@@ -137,7 +153,7 @@ export class ClipboardPage {
     await this.clipboardService.clear();
     this.readResult.set(null);
     this.flash('clear');
-    this.pushHistory('Cleared clipboard', '—');
+    await this.refreshActivityLog();
   }
 
   // ── Helpers ───────────────────────────────────────────────────────
@@ -162,13 +178,9 @@ export class ClipboardPage {
     );
   }
 
-  private pushHistory(action: string, detail: string): void {
-    const entry: HistoryEntry = { action, detail, timestamp: Date.now() };
-    this.history.update((h) => [entry, ...h].slice(0, HISTORY_LIMIT));
-  }
-
-  private truncate(value: string, max = 32): string {
-    return value.length > max ? value.slice(0, max) + '…' : value;
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
   }
 
   private async showGenericErrorAlert(): Promise<void> {

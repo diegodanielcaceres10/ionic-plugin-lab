@@ -2,9 +2,11 @@
   <app-ui-header
     title="Clipboard"
     subtitle="Read and write the clipboard using the Capacitor Clipboard plugin."
+    [pluginType]="pluginInfo()?.pluginType ? 'official' : 'community'"
+    [isFavorited]="pluginInfo()?.isFavorited ?? false"
+    (favoriteToggled)="toggleFavorite()"
   />
 
-  <!-- 1 + 2. Write custom text & Read -->
   <section class="panel">
     <div class="panel__header">
       <ion-icon name="copy-outline"></ion-icon>
@@ -34,7 +36,6 @@
     </div>
   </section>
 
-  <!-- 3. Read result with type detection -->
   @if (readResult()) {
   <section class="panel">
     <div class="panel__header">
@@ -57,7 +58,6 @@
   </section>
   }
 
-  <!-- 4. Copy image -->
   <section class="panel">
     <div class="panel__header">
       <ion-icon name="image-outline"></ion-icon>
@@ -82,7 +82,6 @@
     </div>
   </section>
 
-  <!-- 5. Quick-copy chips -->
   <section class="panel">
     <div class="panel__header">
       <ion-icon name="flash-outline"></ion-icon>
@@ -106,7 +105,6 @@
     </div>
   </section>
 
-  <!-- 6. Clear -->
   <section class="buttons">
     <app-ui-button
       text="Clear Clipboard"
@@ -116,25 +114,5 @@
     />
   </section>
 
-  <!-- 7. History -->
-  @if (history().length) {
-  <section class="panel">
-    <div class="panel__header">
-      <ion-icon name="time-outline"></ion-icon>
-      <h3>Action History</h3>
-    </div>
-
-    @for (entry of history(); track entry.timestamp) {
-    <div class="history__row">
-      <div class="history__text">
-        <span class="history__action">{{ entry.action }}</span>
-        <span class="history__detail">{{ entry.detail }}</span>
-      </div>
-      <span class="history__time"
-        >{{ entry.timestamp | date: 'HH:mm:ss' }}</span
-      >
-    </div>
-    }
-  </section>
-  }
+  <app-activity-log [entries]="activityLog()" />
 </app-shell>
