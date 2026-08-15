@@ -11,6 +11,8 @@ import type {
   AuthenticateOptions,
 } from '@aparajita/capacitor-biometric-auth';
 import { PlatformService } from '../../../core/platform/platform.service';
+import { PluginLogsService } from '../../../core/plugin-logs/plugin-logs.service';
+import { PluginsCatalogService } from '../../../core/plugins-catalog/plugins-catalog.service';
 
 export {
   BiometryType,
@@ -54,6 +56,8 @@ export const BIOMETRY_OPTIONS: BiometryOption[] = [
 @Injectable({ providedIn: 'root' })
 export class BiometricsService {
   private platformService = inject(PlatformService);
+  private pluginLogsService = inject(PluginLogsService);
+  private pluginsCatalogService = inject(PluginsCatalogService);
 
   /** True when running in a plain browser tab — biometry is simulated here, not real. */
   isBrowser(): boolean {
@@ -61,25 +65,74 @@ export class BiometricsService {
   }
 
   async checkBiometry(): Promise<CheckBiometryResult> {
-    return BiometricAuth.checkBiometry();
+    try {
+      const result = await BiometricAuth.checkBiometry();
+      await this.saveLog(
+        'Check',
+        `Biometry ${result.isAvailable ? 'available' : 'unavailable'} (${result.biometryType})`,
+        'success',
+      );
+      return result;
+    } catch (error) {
+      await this.saveLog('Check', this.errorMessage(error), 'danger');
+      throw error;
+    }
   }
 
   async authenticate(options: AuthenticateOptions): Promise<void> {
-    await BiometricAuth.authenticate(options);
+    try {
+      await BiometricAuth.authenticate(options);
+      await this.saveLog('Authenticate', 'Authentication succeeded', 'success');
+    } catch (error) {
+      await this.saveLog('Authenticate', this.errorMessage(error), 'danger');
+      throw error;
+    }
   }
 
   /** Web only — dynamically fakes the biometry type available for testing. */
   async setBiometryType(type: BiometryType): Promise<void> {
     await BiometricAuth.setBiometryType(type);
+    await this.saveLog('Setup', `Simulated biometry type: ${type}`, 'warning');
   }
 
   /** Web only — simulates whether the user has enrolled in biometry. */
   async setBiometryIsEnrolled(isEnrolled: boolean): Promise<void> {
     await BiometricAuth.setBiometryIsEnrolled(isEnrolled);
+    await this.saveLog(
+      'Setup',
+      `Simulated enrollment: ${isEnrolled}`,
+      'warning',
+    );
   }
 
   /** Web only — simulates whether the device has a PIN/pattern/passcode set. */
   async setDeviceIsSecure(isSecure: boolean): Promise<void> {
     await BiometricAuth.setDeviceIsSecure(isSecure);
+    await this.saveLog(
+      'Setup',
+      `Simulated device secure: ${isSecure}`,
+      'warning',
+    );
+  }
+
+  /** Writes the activity log entry and, on success, marks Biometrics as tested/recently used. */
+  private async saveLog(
+    type: string,
+    message: string,
+    status: 'success' | 'warning' | 'danger',
+  ): Promise<void> {
+    await this.pluginLogsService.add({
+      plugin: 'Biometrics',
+      type,
+      message,
+      status,
+    });
+    if (status !== 'danger') {
+      await this.pluginsCatalogService.markAsTested('Biometrics');
+    }
+  }
+
+  private errorMessage(error: unknown): string {
+    return (error instanceof Error && error.message) || 'Unknown';
   }
 }
