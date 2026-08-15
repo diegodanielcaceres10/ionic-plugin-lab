@@ -2,6 +2,9 @@
   <app-ui-header
     title="NFC"
     subtitle="Read and write NFC tags using the Capacitor NFC plugin."
+    [pluginType]="pluginInfo()?.pluginType ? 'official' : 'community'"
+    [isFavorited]="pluginInfo()?.isFavorited ?? false"
+    (favoriteToggled)="toggleFavorite()"
   />
 
   <section class="card">
@@ -92,4 +95,6 @@
       <span class="info__value">{{ tag()?.scannedAt ?? '—' }}</span>
     </div>
   </section>
+
+  <app-activity-log [entries]="activityLog()" />
 </app-shell>

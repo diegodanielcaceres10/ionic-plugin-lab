@@ -1,6 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { CapacitorNfc, NfcEvent, NdefRecord } from '@capgo/capacitor-nfc';
 import { PlatformService } from '../../../core/platform/platform.service';
+import { PluginLogsService } from '../../../core/plugin-logs/plugin-logs.service';
+import { PluginsCatalogService } from '../../../core/plugins-catalog/plugins-catalog.service';
 
 export interface NfcReadResult {
   /** Decoded text from the first NDEF "T" (text) record, if any. */
@@ -43,6 +45,8 @@ const DEMO_TEXT = 'Hello from my Ionic portfolio app!';
 @Injectable({ providedIn: 'root' })
 export class NfcService {
   private platformService = inject(PlatformService);
+  private pluginLogsService = inject(PluginLogsService);
+  private pluginsCatalogService = inject(PluginsCatalogService);
 
   /**
    * Opens a scan session and resolves with the next tag that's brought
@@ -52,29 +56,42 @@ export class NfcService {
    */
   async scan(): Promise<NfcReadResult> {
     if (!this.platformService.isNativePlatform()) {
+      await this.saveLog('Scan', 'Scan simulated (browser)', 'warning');
       throw new BrowserNotSupportedError();
     }
 
-    await this.ensureReady();
+    try {
+      await this.ensureReady();
 
-    return new Promise<NfcReadResult>((resolve, reject) => {
-      let listenerHandle: { remove: () => Promise<void> } | undefined;
+      const result = await new Promise<NfcReadResult>((resolve, reject) => {
+        let listenerHandle: { remove: () => Promise<void> } | undefined;
 
-      const cleanup = async () => {
-        await listenerHandle?.remove();
-        await CapacitorNfc.stopScanning();
-      };
+        const cleanup = async () => {
+          await listenerHandle?.remove();
+          await CapacitorNfc.stopScanning();
+        };
 
-      CapacitorNfc.addListener('nfcEvent', async (event: NfcEvent) => {
-        await cleanup();
-        resolve(this.toReadResult(event));
-      }).then((handle) => (listenerHandle = handle));
+        CapacitorNfc.addListener('nfcEvent', async (event: NfcEvent) => {
+          await cleanup();
+          resolve(this.toReadResult(event));
+        }).then((handle) => (listenerHandle = handle));
 
-      CapacitorNfc.startScanning().catch(async (error) => {
-        await cleanup();
-        reject(error);
+        CapacitorNfc.startScanning().catch(async (error) => {
+          await cleanup();
+          reject(error);
+        });
       });
-    });
+
+      await this.saveLog(
+        'Scan',
+        `Tag read (${result.tagType ?? 'unknown type'})`,
+        'success',
+      );
+      return result;
+    } catch (error) {
+      await this.saveLog('Scan', this.errorMessage(error), 'danger');
+      throw error;
+    }
   }
 
   /**
@@ -83,38 +100,46 @@ export class NfcService {
    */
   async writeText(text: string = DEMO_TEXT): Promise<void> {
     if (!this.platformService.isNativePlatform()) {
+      await this.saveLog('Write', 'Write simulated (browser)', 'warning');
       throw new BrowserNotSupportedError();
     }
 
-    await this.ensureReady();
+    try {
+      await this.ensureReady();
 
-    return new Promise<void>((resolve, reject) => {
-      let listenerHandle: { remove: () => Promise<void> } | undefined;
+      await new Promise<void>((resolve, reject) => {
+        let listenerHandle: { remove: () => Promise<void> } | undefined;
 
-      const cleanup = async () => {
-        await listenerHandle?.remove();
-        await CapacitorNfc.stopScanning();
-      };
+        const cleanup = async () => {
+          await listenerHandle?.remove();
+          await CapacitorNfc.stopScanning();
+        };
 
-      CapacitorNfc.addListener('nfcEvent', async () => {
-        try {
-          await CapacitorNfc.write({
-            records: [this.toTextRecord(text)],
-            allowFormat: true,
-          });
-          await cleanup();
-          resolve();
-        } catch (error) {
+        CapacitorNfc.addListener('nfcEvent', async () => {
+          try {
+            await CapacitorNfc.write({
+              records: [this.toTextRecord(text)],
+              allowFormat: true,
+            });
+            await cleanup();
+            resolve();
+          } catch (error) {
+            await cleanup();
+            reject(error);
+          }
+        }).then((handle) => (listenerHandle = handle));
+
+        CapacitorNfc.startScanning().catch(async (error) => {
           await cleanup();
           reject(error);
-        }
-      }).then((handle) => (listenerHandle = handle));
-
-      CapacitorNfc.startScanning().catch(async (error) => {
-        await cleanup();
-        reject(error);
+        });
       });
-    });
+
+      await this.saveLog('Write', 'Tag written', 'success');
+    } catch (error) {
+      await this.saveLog('Write', this.errorMessage(error), 'danger');
+      throw error;
+    }
   }
 
   /** Opens the system NFC settings so the user can turn it on. */
@@ -134,6 +159,27 @@ export class NfcService {
       isWritable: true,
       scannedAt: 'Just now',
     };
+  }
+
+  /** Writes the activity log entry and, on success, marks NFC as tested/recently used. */
+  private async saveLog(
+    type: string,
+    message: string,
+    status: 'success' | 'warning' | 'danger',
+  ): Promise<void> {
+    await this.pluginLogsService.add({
+      plugin: 'NFC',
+      type,
+      message,
+      status,
+    });
+    if (status !== 'danger') {
+      await this.pluginsCatalogService.markAsTested('NFC');
+    }
+  }
+
+  private errorMessage(error: unknown): string {
+    return (error instanceof Error && error.message) || 'Unknown';
   }
 
   // ---------------------------------------------------------------

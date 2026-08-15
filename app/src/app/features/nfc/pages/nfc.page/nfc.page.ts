@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import { CommonModule } from '@angular/common';
 import {
   IonSpinner,
@@ -29,6 +30,14 @@ import {
   DeviceNotSupportedError,
   NfcDisabledError,
 } from '../../data/nfc.service';
+import {
+  PluginCatalogEntry,
+  PluginsCatalogService,
+} from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 type ViewState = 'idle' | 'scanning' | 'read';
 
@@ -40,19 +49,25 @@ type ViewState = 'idle' | 'scanning' | 'read';
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonSpinner,
     IonIcon,
   ],
   templateUrl: './nfc.page.html',
   styleUrls: ['./nfc.page.scss'],
 })
-export class NfcPage {
+export class NfcPage implements OnInit {
+  pluginName = 'NFC';
   state = signal<ViewState>('idle');
   tag = signal<NfcReadResult | null>(null);
+  pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   constructor(
     private nfcService: NfcService,
     private alertController: AlertController,
+    private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
   ) {
     addIcons({
       'chevron-back-outline': chevronBackOutline,
@@ -69,6 +84,21 @@ export class NfcPage {
     });
   }
 
+  async ngOnInit(): Promise<void> {
+    const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
+    this.pluginInfo.set(plugin);
+    await this.refreshActivityLog();
+  }
+
+  async toggleFavorite(): Promise<void> {
+    const plugin = this.pluginInfo();
+    if (!plugin) return;
+
+    const next = !plugin.isFavorited;
+    await this.pluginsCatalogService.setFavorited(plugin.id, next);
+    this.pluginInfo.set({ ...plugin, isFavorited: next });
+  }
+
   /** Opens a scan session and reads the next tag brought near the device. */
   async scanTag(): Promise<void> {
     this.state.set('scanning');
@@ -78,6 +108,8 @@ export class NfcPage {
       this.state.set('read');
     } catch (error) {
       await this.handleError(error);
+    } finally {
+      await this.refreshActivityLog();
     }
   }
 
@@ -90,7 +122,14 @@ export class NfcPage {
       this.state.set(this.tag() ? 'read' : 'idle');
     } catch (error) {
       await this.handleError(error);
+    } finally {
+      await this.refreshActivityLog();
     }
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
   }
 
   private async handleError(error: unknown): Promise<void> {
