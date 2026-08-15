@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ShellComponent } from '../../../../shared/shell/shell.component';
 import { HeaderComponent } from '../../../../shared/ui/header/header.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { ActivityLogComponent } from '../../../../shared/ui/activity-log/activity-log.component';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -22,6 +23,10 @@ import {
   PluginCatalogEntry,
   PluginsCatalogService,
 } from '../../../../core/plugins-catalog/plugins-catalog.service';
+import {
+  PluginLogEntry,
+  PluginLogsService,
+} from '../../../../core/plugin-logs/plugin-logs.service';
 
 type ViewState = 'loading' | 'ready' | 'error';
 type CopyTarget = 'identifier' | 'json';
@@ -34,6 +39,7 @@ type CopyTarget = 'identifier' | 'json';
     CommonModule,
     HeaderComponent,
     ButtonComponent,
+    ActivityLogComponent,
     IonIcon,
   ],
   templateUrl: './device.page.html',
@@ -45,6 +51,7 @@ export class DevicePage implements OnInit {
   snapshot = signal<DeviceSnapshot | null>(null);
   copied = signal<CopyTarget | null>(null);
   pluginInfo = signal<PluginCatalogEntry | null>(null);
+  activityLog = signal<PluginLogEntry[]>([]);
 
   private copiedResetHandle: ReturnType<typeof setTimeout> | null = null;
 
@@ -56,6 +63,7 @@ export class DevicePage implements OnInit {
   constructor(
     private deviceService: DeviceService,
     private pluginsCatalogService: PluginsCatalogService,
+    private pluginLogsService: PluginLogsService,
   ) {
     addIcons({
       'finger-print-outline': fingerPrintOutline,
@@ -72,9 +80,9 @@ export class DevicePage implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    await this.load();
     const plugin = await this.pluginsCatalogService.findByName(this.pluginName);
     this.pluginInfo.set(plugin);
+    await this.load();
   }
 
   async toggleFavorite(): Promise<void> {
@@ -95,7 +103,14 @@ export class DevicePage implements OnInit {
       this.state.set('ready');
     } catch {
       this.state.set('error');
+    } finally {
+      await this.refreshActivityLog();
     }
+  }
+
+  private async refreshActivityLog(): Promise<void> {
+    const logs = await this.pluginLogsService.list(this.pluginName);
+    this.activityLog.set(logs);
   }
 
   async copyIdentifier(): Promise<void> {

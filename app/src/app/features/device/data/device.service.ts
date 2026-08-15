@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Device, type DeviceInfo } from '@capacitor/device';
 import { PluginsCatalogService } from '../../../core/plugins-catalog/plugins-catalog.service';
+import { PluginLogsService } from '../../../core/plugin-logs/plugin-logs.service';
 
 export interface BatterySnapshot {
   level: number | null;
@@ -25,25 +26,39 @@ export interface DeviceSnapshot {
 @Injectable({ providedIn: 'root' })
 export class DeviceService {
   private pluginsCatalogService = inject(PluginsCatalogService);
+  private pluginLogsService = inject(PluginLogsService);
 
   async getSnapshot(): Promise<DeviceSnapshot> {
-    const [id, info, languageCode, languageTag, battery] = await Promise.all([
-      Device.getId(),
-      Device.getInfo(),
-      Device.getLanguageCode(),
-      Device.getLanguageTag(),
-      this.getBatterySafely(),
-    ]);
+    try {
+      const [id, info, languageCode, languageTag, battery] = await Promise.all([
+        Device.getId(),
+        Device.getInfo(),
+        Device.getLanguageCode(),
+        Device.getLanguageTag(),
+        this.getBatterySafely(),
+      ]);
 
-    await this.pluginsCatalogService.markAsTested('Device');
+      await this.saveLog(
+        'Info',
+        `Loaded device info (${info.platform}/${info.operatingSystem})`,
+        'success',
+      );
 
-    return {
-      identifier: id.identifier,
-      info,
-      language: languageCode.value,
-      locale: languageTag.value,
-      battery,
-    };
+      return {
+        identifier: id.identifier,
+        info,
+        language: languageCode.value,
+        locale: languageTag.value,
+        battery,
+      };
+    } catch (error) {
+      await this.saveLog(
+        'Info',
+        (error instanceof Error && error.message) || 'Unknown',
+        'danger',
+      );
+      throw error;
+    }
   }
 
   /**
@@ -60,7 +75,25 @@ export class DeviceService {
         supported: true,
       };
     } catch {
+      await this.saveLog('Battery', 'Battery info not available', 'warning');
       return { level: null, isCharging: null, supported: false };
+    }
+  }
+
+  /** Writes the activity log entry and, on success, marks Device as tested/recently used. */
+  private async saveLog(
+    type: string,
+    message: string,
+    status: 'success' | 'warning' | 'danger',
+  ): Promise<void> {
+    await this.pluginLogsService.add({
+      plugin: 'Device',
+      type,
+      message,
+      status,
+    });
+    if (status !== 'danger') {
+      await this.pluginsCatalogService.markAsTested('Device');
     }
   }
 }
