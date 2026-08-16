@@ -8,5 +8,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./signature.component.scss'],
 })
 export class SignatureComponent {
-  readonly appVersion = '1.0.0';
+  readonly appVersion = '1.1.0';
 }

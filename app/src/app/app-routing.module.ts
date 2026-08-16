@@ -120,13 +120,6 @@ const routes: Routes = [
       import('./features/nfc/pages/nfc.page/nfc.page').then((m) => m.NfcPage),
   },
   {
-    path: 'bluetooth',
-    loadComponent: () =>
-      import('./features/bluetooth/pages/bluetooth.page/bluetooth.page').then(
-        (m) => m.BluetoothPage,
-      ),
-  },
-  {
     path: 'biometrics',
     loadComponent: () =>
       import('./features/biometrics/pages/biometrics.page/biometrics.page').then(

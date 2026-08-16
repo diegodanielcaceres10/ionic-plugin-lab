@@ -22,7 +22,6 @@ type AppTabsTypes =
   | 'local-notifications'
   | 'clipboard'
   | 'nfc'
-  | 'bluetooth'
   | 'biometrics';
 
 @Component({

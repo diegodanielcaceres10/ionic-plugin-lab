@@ -2,7 +2,7 @@ export interface PluginSeedEntry {
   name: string;
   category: string;
   icon: string;
-  link?: string;
+  link: string;
   pluginType: string;
 }
 
@@ -26,18 +26,6 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     category: 'Location & Maps',
     icon: 'location-outline',
     link: 'geolocation',
-    pluginType: 'official',
-  },
-  {
-    name: 'Background Geolocation',
-    category: 'Location & Maps',
-    icon: 'locate-outline',
-    pluginType: 'community',
-  },
-  {
-    name: 'Google Maps',
-    category: 'Location & Maps',
-    icon: 'earth-outline',
     pluginType: 'official',
   },
   {
@@ -76,36 +64,6 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     pluginType: 'official',
   },
   {
-    name: 'Preferences',
-    category: 'Storage & Files',
-    icon: 'options-outline',
-    pluginType: 'official',
-  },
-  {
-    name: 'File Picker',
-    category: 'Storage & Files',
-    icon: 'document-attach-outline',
-    pluginType: 'community',
-  },
-  {
-    name: 'File Transfer',
-    category: 'Storage & Files',
-    icon: 'swap-vertical-outline',
-    pluginType: 'community',
-  },
-  {
-    name: 'File Viewer',
-    category: 'Storage & Files',
-    icon: 'eye-outline',
-    pluginType: 'community',
-  },
-  {
-    name: 'Cookies',
-    category: 'Storage & Files',
-    icon: 'file-tray-stacked-outline',
-    pluginType: 'community',
-  },
-  {
     name: 'StatusBar',
     category: 'UI & System Bars',
     icon: 'stats-chart-outline',
@@ -120,28 +78,10 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     pluginType: 'official',
   },
   {
-    name: 'InAppBrowser',
-    category: 'Web & Connectivity',
-    icon: 'open-outline',
-    pluginType: 'community',
-  },
-  {
-    name: 'App Launcher',
-    category: 'Web & Connectivity',
-    icon: 'rocket-outline',
-    pluginType: 'official',
-  },
-  {
     name: 'Local Notifications',
     category: 'Notifications',
     icon: 'notifications-outline',
     link: 'local-notifications',
-    pluginType: 'official',
-  },
-  {
-    name: 'Push Notifications',
-    category: 'Notifications',
-    icon: 'paper-plane-outline',
     pluginType: 'official',
   },
   {
@@ -166,23 +106,10 @@ export const PLUGIN_CATALOG_SEED: PluginSeedEntry[] = [
     pluginType: 'community',
   },
   {
-    name: 'Bluetooth LE',
-    category: 'Wireless & Security',
-    icon: 'bluetooth-outline',
-    link: 'bluetooth',
-    pluginType: 'community',
-  },
-  {
     name: 'Biometrics',
     category: 'Wireless & Security',
     icon: 'finger-print-outline',
     link: 'biometrics',
     pluginType: 'community',
-  },
-  {
-    name: 'App',
-    category: 'App Core',
-    icon: 'apps-outline',
-    pluginType: 'official',
   },
 ];
